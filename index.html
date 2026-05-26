@@ -354,6 +354,8 @@
     <header>
         <div class="brand">A.S Code <span style="font-size:10px; color:var(--accent); vertical-align:super;">PRO</span></div>
         <div class="toolbar-group">
+            <!-- NEW MOBILE VERSION ACTION BUTTON ADDED TO THE LEFT OF CONTACT US -->
+            <button class="btn btn-icon" onclick="window.open('https://aryansharma1171.github.io/a.s-code-editor/index.html', '_blank')" title="Open Mobile Version">📱</button>
             <button class="btn btn-icon" onclick="contactUs()" title="Contact Us">📧</button>
             <button class="btn btn-icon" onclick="openSnippets()" title="Snippets">⚡</button>
             <button class="btn btn-icon" onclick="document.execCommand('undo')" title="Undo">↩️</button>
@@ -361,6 +363,7 @@
             <button class="btn btn-icon" onclick="document.getElementById('colorPickerInput').click()" title="Color Picker">🎨</button>
             <button class="btn btn-icon" onclick="location.reload()" title="Refresh Page">🔄</button>
             
+            <!-- CORE ENGINE ACTION BUTTONS -->
             <button class="btn btn-success" id="splitToggleBtn" onclick="toggleSplitScreen()">⚡ LIVE SPLIT</button>
             <button class="btn btn-primary" onclick="toggleRun()">📱 FULL SCREEN</button>
             
@@ -381,6 +384,7 @@
             <textarea id="editor" spellcheck="false" placeholder="<h1>Start Coding...</h1>"></textarea>
         </div>
         
+        <!-- INLINE SPLIT SCREEN PREVIEW MECHANISM -->
         <div class="split-preview-panel" id="splitPreviewPanel">
             <div class="split-indicator-bar">
                 <span>🔴 Live Sync Active</span>
@@ -405,6 +409,7 @@
         <button class="helper-btn" onclick="insert('px')">px</button>
     </div>
 
+    <!-- ADVANCED SIMULATION PREVIEW COMPLEX CONTAINER -->
     <div id="previewContainer">
         <div class="preview-tabs">
             <button id="tabResBtn" class="tab-btn active" onclick="switchTab('result')">🌐 Live Output</button>
@@ -412,6 +417,7 @@
             <button class="close-btn" onclick="toggleRun()">✖ CLOSE PREVIEW</button>
         </div>
 
+        <!-- Dynamic Chrome DevTools-style Control Strip -->
         <div class="device-toolbar" id="devToolbar">
             <div class="toolbar-select-wrapper">
                 <select id="devicePresetSelect" onchange="handlePresetChange(this.value)">
@@ -440,6 +446,7 @@
         <div class="preview-viewport-area">
             <div class="ruler-overlay" id="rulerOverlay"></div>
             
+            <!-- Realistically scaled hardware bounding matrix frame -->
             <div class="device-frame-wrapper" id="deviceFrameWrapper">
                 <div class="device-status-bar">
                     <span id="statusTime">09:41</span>
@@ -451,6 +458,7 @@
                 </div>
             </div>
 
+            <!-- Standalone console window map target -->
             <div id="consoleArea"></div>
         </div>
     </div>
