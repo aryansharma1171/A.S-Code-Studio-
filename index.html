@@ -2,752 +2,801 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>A.S Code - Ultimate Studio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+    <meta name="theme-color" content="#1e1e1e">
+    <title>A.S Code - Pro IDE</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --bg-dark: #121212;
-            --bg-panel: #1e1e1e;
-            --bg-toolbar: #252526;
+            --bg: #1e1e1e;
+            --sidebar: #252526;
             --accent: #007acc;
-            --accent-hover: #005f9e;
-            --text-main: #cccccc;
-            --text-light: #ffffff;
-            --border: #333333;
-            --error-color: #f48771;
-            --warn-color: #cca700;
-            --info-color: #4fc1ff;
-            --glass-bg: rgba(37, 37, 38, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent-hover: #0062a3;
+            --text: #cccccc;
+            --border: #333;
+            --console-bg: #111;
+            --error: #f48771;
+            --toolbar-height: 46px;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-main);
-            height: 100dvh;
-            display: flex;
+        body, html {
+            background-color: var(--bg); 
+            color: var(--text);
+            height: 100dvh; 
+            width: 100%;
+            margin: 0; 
+            padding: 0;
+            display: flex; 
             flex-direction: column;
-            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif; 
+            overflow: hidden; 
         }
 
         /* --- HEADER --- */
         header {
-            height: 48px;
-            background: var(--bg-toolbar);
-            display: flex;
-            align-items: center;
+            background-color: var(--sidebar); 
+            height: 50px;
+            display: flex; 
+            align-items: center; 
             justify-content: space-between;
-            padding: 0 16px;
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
-            z-index: 100;
+            padding: 0 10px; 
+            border-bottom: 1px solid var(--border); 
+            flex-shrink: 0; 
+            z-index: 20;
         }
 
-        .brand { font-weight: 600; color: var(--text-light); font-size: 15px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;}
-        .brand-badge { background: var(--accent); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
-        
-        .header-actions { display: flex; gap: 8px; }
+        .brand { font-weight: 700; color: #fff; font-size: 16px; letter-spacing: 0.5px; }
+        .toolbar-group { display: flex; gap: 5px; flex-wrap: nowrap; overflow-x: auto; }
+
         .btn {
-            background: transparent; color: var(--text-main); border: 1px solid transparent;
-            padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer;
-            transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+            background: #333; color: #eee; border: 1px solid #444;
+            height: 34px; padding: 0 10px; font-size: 13px; cursor: pointer;
+            border-radius: 4px; display: flex; align-items: center; justify-content: center;
+            gap: 4px; transition: background 0.2s, transform 0.1s;
         }
-        .btn:hover { background: rgba(255,255,255,0.1); color: var(--text-light); }
-        .btn-primary { background: var(--accent); color: white; }
-        .btn-primary:hover { background: var(--accent-hover); }
+        .btn:active { transform: scale(0.95); }
+        .btn:hover { background: #444; }
+        .btn-primary { background-color: var(--accent); border-color: #005f9e; color: white; font-weight: bold; }
+        .btn-primary:hover { background-color: var(--accent-hover); }
+        .btn-icon { width: 34px; padding: 0; font-size: 15px; }
 
-        /* --- MAIN LAYOUT (SPLIT PANE) --- */
-        .workspace {
-            display: flex;
-            flex-grow: 1;
-            height: calc(100vh - 48px);
-            overflow: hidden;
+        /* --- SEARCH BAR --- */
+        #searchBar {
+            display: none; background: #2d2d2d; padding: 8px;
+            border-bottom: 1px solid var(--border); justify-content: center; gap: 5px;
+            flex-shrink: 0;
         }
+        #searchInput { background: #1e1e1e; border: 1px solid #444; color: white; padding: 5px; border-radius: 3px; width: 60%; }
 
-        /* --- EDITOR PANE --- */
-        .editor-pane {
-            width: 45%;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-panel);
-            position: relative;
-        }
-
-        .editor-container {
-            display: flex;
-            flex-grow: 1;
-            position: relative;
-            overflow: hidden;
+        /* --- WORKSPACE --- */
+        .workspace { 
+            display: flex; 
+            flex-grow: 1; 
+            position: relative; 
+            height: 100%; 
+            min-height: 0; 
+            overflow: hidden; 
         }
 
         .gutter {
-            width: 45px;
-            background: var(--bg-panel);
+            width: 45px; 
+            background: var(--bg); 
             color: #6e7681;
-            text-align: right;
-            padding: 12px 8px;
+            text-align: right; 
+            padding: 10px 8px; 
             font-family: 'Fira Code', monospace;
-            font-size: 13px;
-            line-height: 1.6;
+            font-size: 13px; 
+            line-height: 1.5; 
             border-right: 1px solid var(--border);
             overflow: hidden;
+            flex-shrink: 0;
             user-select: none;
         }
 
         #editor {
-            flex-grow: 1;
-            background: transparent;
+            flex-grow: 1; 
+            background: var(--bg); 
             color: #d4d4d4;
-            border: none;
-            padding: 12px;
+            border: none; 
+            padding: 10px; 
             font-family: 'Fira Code', monospace;
-            font-size: 13px;
-            line-height: 1.6;
-            resize: none;
+            font-size: 13px; 
+            line-height: 1.5; 
+            resize: none; 
             white-space: pre;
-            overflow: auto;
-            tab-size: 4;
+            overflow: auto; 
+            width: 100%;
+            height: 100%;
         }
 
-        /* --- DRAGGABLE DIVIDER --- */
-        .resizer {
-            width: 6px;
-            background: var(--border);
-            cursor: col-resize;
-            transition: background 0.2s;
-            z-index: 10;
+        /* --- HELPER BAR --- */
+        .helper-bar {
+            background: var(--sidebar); 
+            padding: 8px 5px; 
+            display: flex; 
+            gap: 6px;
+            overflow-x: auto; 
+            border-top: 1px solid var(--border); 
+            flex-shrink: 0; 
+            z-index: 20;
+            width: 100%;
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
         }
-        .resizer:hover, .resizer.dragging { background: var(--accent); }
+        
+        .helper-btn {
+            background: #3e3e42; color: #fff; border: none; min-width: 42px; height: 38px;
+            border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 15px;
+            cursor: pointer; flex-shrink: 0;
+        }
+        .helper-btn:active { background: var(--accent); }
 
-        /* --- PREVIEW PANE --- */
-        .preview-pane {
-            flex-grow: 1;
-            display: flex;
+        /* --- MODERN MULTI-DEVICE PREVIEW CONTAINER --- */
+        #previewContainer {
+            display: none; 
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: #111112;
             flex-direction: column;
-            background: #000;
-            position: relative;
-            min-width: 300px;
+            z-index: 5000;
+            opacity: 0;
+            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        #previewContainer.show { opacity: 1; display: flex; }
 
-        /* Preview Toolbar (Glassmorphism) */
-        .preview-toolbar {
-            height: 48px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--glass-border);
+        /* Preview Navigation Tabs */
+        .preview-tabs {
+            background: var(--sidebar); display: flex; border-bottom: 1px solid var(--border); height: 45px; align-items: center; padding: 0 10px;
+        }
+        .tab-btn {
+            padding: 0 15px; height: 100%; border: none; background: transparent; 
+            font-weight: 600; cursor: pointer; color: #888; border-bottom: 3px solid transparent;
+            font-size: 13px; transition: color 0.2s, border-color 0.2s;
+        }
+        .tab-btn.active { color: #fff; border-bottom-color: var(--accent); }
+        .close-btn { 
+            margin-left: auto; background: #e51400; color: white; 
+            padding: 0 16px; height: 32px; cursor: pointer; border: none; font-weight: bold;
+            border-radius: 4px; font-size: 12px; display: flex; align-items: center; gap: 4px;
+        }
+        .close-btn:hover { background: #ff1a00; }
+
+        /* Device Manipulation Toolbar */
+        .device-toolbar {
+            background: #2d2d2d;
+            height: var(--toolbar-height);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            padding: 0 12px;
+            padding: 0 10px;
             gap: 8px;
             overflow-x: auto;
             white-space: nowrap;
-            z-index: 10;
+            flex-shrink: 0;
         }
-        .preview-toolbar::-webkit-scrollbar { display: none; }
-
-        .toolbar-group { display: flex; align-items: center; background: rgba(0,0,0,0.3); border-radius: 6px; padding: 2px; border: 1px solid rgba(255,255,255,0.05); }
+        .device-toolbar::-webkit-scrollbar { display: none; }
         
-        select.device-select {
-            background: transparent; color: var(--text-main); border: none; padding: 6px; 
-            font-size: 12px; font-family: inherit; cursor: pointer; outline: none;
+        .toolbar-select-wrapper { display: flex; align-items: center; background: #202020; border: 1px solid #444; border-radius: 4px; padding: 0 6px; }
+        .toolbar-select-wrapper select {
+            background: transparent; color: #eee; border: none; height: 28px; font-size: 12px; cursor: pointer; padding-right: 4px;
         }
-        select.device-select option { background: var(--bg-panel); color: white; }
 
-        .icon-btn {
-            background: transparent; border: none; color: #aaa; width: 28px; height: 28px;
-            border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: 0.2s;
+        .dev-btn {
+            background: #202020; color: #aaa; border: 1px solid #444;
+            height: 28px; padding: 0 10px; font-size: 12px; cursor: pointer;
+            border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;
+            transition: all 0.2s;
         }
-        .icon-btn:hover { background: rgba(255,255,255,0.1); color: white; }
-        .icon-btn.active { color: var(--accent); background: rgba(0, 122, 204, 0.1); }
+        .dev-btn:hover { background: #3a3a3a; color: #fff; }
+        .dev-btn.active { background: var(--accent); color: white; border-color: #005f9e; }
+        .dev-btn-group { display: flex; background: #202020; border-radius: 4px; border: 1px solid #444; padding: 2px; }
+        .dev-btn-group .dev-btn { border: none; height: 24px; border-radius: 2px; }
 
-        .live-toggle {
-            display: flex; align-items: center; gap: 6px; font-size: 12px; margin-left: auto;
-            color: #aaa; cursor: pointer; user-select: none;
+        .hud-label {
+            color: #888; font-family: 'Fira Code', monospace; font-size: 11px; margin-left: auto;
+            background: #1a1a1a; padding: 4px 8px; border-radius: 4px; border: 1px solid #3c3c3c;
         }
-        .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; transition: 0.3s; }
-        .live-dot.active { background: #28a745; box-shadow: 0 0 8px #28a745; }
 
-        /* Canvas Area */
-        .canvas-area {
+        /* Canvas Window Setup */
+        .preview-viewport-area {
             flex-grow: 1;
             position: relative;
             overflow: auto;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: radial-gradient(circle at center, #2a2a2a 0%, #111 100%);
-            padding: 20px;
+            padding: 40px;
+            background: radial-gradient(circle, #222225 10%, #111112 90%);
         }
 
-        /* Device Hardware Frame */
-        .device-frame {
-            position: relative;
-            background: #fff;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
-            transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s;
-            transform-origin: center center;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .device-frame.has-hardware {
-            border: 14px solid #1a1a1c;
-            border-radius: 40px;
-            background: #000;
-        }
-
-        .device-frame.has-hardware::after {
-            /* Hardware outer rim shine */
-            content: ''; position: absolute; top: -14px; left: -14px; right: -14px; bottom: -14px;
-            border-radius: 40px; border: 1px solid rgba(255,255,255,0.1); pointer-events: none;
-        }
-
-        /* Notch Simulation */
-        .notch {
-            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-            width: 120px; height: 30px; background: #1a1a1c;
-            border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;
-            z-index: 100; display: none;
-        }
-        .device-frame.has-notch .notch { display: block; }
-
-        .device-screen {
-            flex-grow: 1; width: 100%; height: 100%; position: relative;
-            background: #fff; border-radius: inherit; overflow: hidden;
-        }
-
-        #preview-iframe {
-            width: 100%; height: 100%; border: none; display: block;
-            background: transparent;
-        }
-
-        /* Error Overlay inside Preview */
-        .error-overlay {
-            position: absolute; top: 0; left: 0; right: 0; background: rgba(220, 38, 38, 0.95);
-            color: white; padding: 12px; font-family: 'Fira Code', monospace; font-size: 12px;
-            z-index: 200; backdrop-filter: blur(4px); transform: translateY(-100%);
-            transition: transform 0.3s ease; display: flex; flex-direction: column; gap: 4px;
-        }
-        .error-overlay.show { transform: translateY(0); }
-        .error-overlay .close-err { position: absolute; top: 8px; right: 8px; cursor: pointer; font-weight: bold; }
-
-        /* --- CONSOLE PANEL --- */
-        .console-panel {
-            height: 30%;
-            min-height: 150px;
-            background: var(--bg-panel);
-            border-top: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            z-index: 20;
-        }
-        
-        .console-header {
-            height: 34px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 12px;
-        }
-        
-        .console-title { font-size: 12px; color: #aaa; font-weight: 500; display: flex; gap: 6px; align-items: center; }
-        
-        .console-logs {
-            flex-grow: 1; overflow-y: auto; padding: 8px;
-            font-family: 'Fira Code', monospace; font-size: 12px;
-            scroll-behavior: smooth;
-        }
-
-        .log-entry {
-            padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.05);
-            display: flex; gap: 8px; word-break: break-all;
-        }
-        .log-entry:hover { background: rgba(255,255,255,0.02); }
-        .log-time { color: #666; flex-shrink: 0; }
-        
-        .log-type-log { color: var(--text-main); }
-        .log-type-info { color: var(--info-color); }
-        .log-type-warn { color: var(--warn-color); background: rgba(204, 167, 0, 0.05); }
-        .log-type-error { color: var(--error-color); background: rgba(244, 135, 113, 0.05); border-left: 2px solid var(--error-color); }
-        .log-type-system { color: #888; font-style: italic; }
-
-        /* --- CUSTOM MODAL SYSTEM (Intercepts window.alert/confirm) --- */
-        .custom-modal-backdrop {
+        /* Pixel Ruler Cross-Overlay */
+        .ruler-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);
-            z-index: 9999; display: none; align-items: center; justify-content: center;
+            pointer-events: none; opacity: 0.15; display: none;
+            background-image: linear-gradient(to right, #888 1px, transparent 1px), linear-gradient(to bottom, #888 1px, transparent 1px);
+            background-size: 20px 20px;
         }
-        .custom-modal {
-            background: var(--bg-panel); border: 1px solid var(--border);
-            border-radius: 8px; width: 80%; max-width: 300px; padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: scale(0.9);
-            opacity: 0; transition: 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-            font-family: 'Inter', sans-serif; color: white;
-        }
-        .custom-modal-backdrop.show { display: flex; }
-        .custom-modal-backdrop.show .custom-modal { transform: scale(1); opacity: 1; }
-        
-        .modal-msg { font-size: 14px; margin-bottom: 20px; line-height: 1.5; word-wrap: break-word; }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+        .ruler-overlay.active { display: block; }
 
+        /* The simulated adaptive device window frame structure */
+        .device-frame-wrapper {
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center center;
+            box-shadow: 0 25px 65px rgba(0,0,0,0.7);
+            background: #000;
+            border: 0px solid #2d2d2d;
+            border-radius: 0px;
+            display: flex;
+            flex-direction: column;
+            max-width: 100%;
+        }
+
+        /* Simulated Mobile Hardware Framing Attributes */
+        .device-frame-wrapper.phone-chassis {
+            border: 12px solid #2d2d30;
+            border-radius: 36px;
+            padding: 0;
+        }
+        .device-frame-wrapper.phone-chassis::before {
+            content: ''; position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+            width: 120px; height: 16px; background: #2d2d30; border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px; z-index: 5001; display: none;
+        }
+        .device-frame-wrapper.phone-chassis.apple-notch::before { display: block; }
+
+        .device-status-bar {
+            height: 24px; background: #000; font-size: 11px; color: #fff;
+            display: none; align-items: center; justify-content: space-between; padding: 0 24px;
+            font-family: inherit; font-weight: 500; select: none;
+        }
+        .device-frame-wrapper.phone-chassis .device-status-bar { display: flex; }
+
+        /* The Frame Box Content Viewport */
+        .iframe-container {
+            width: 100%; height: 100%; position: relative; flex-grow: 1; overflow: hidden;
+            background: #fff; border-radius: inherit;
+        }
+
+        #outputFrame { border: none; width: 100%; height: 100%; background: white; display: block; }
+        
+        .frame-loader-shield {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(30,30,30,0.8); display: flex; align-items: center;
+            justify-content: center; z-index: 100; opacity: 0; pointer-events: none;
+            transition: opacity 0.15s ease; color: white; font-size: 13px; font-weight: 500;
+        }
+        .frame-loader-shield.loading { opacity: 1; pointer-events: auto; }
+
+        #consoleArea {
+            display: none; flex-grow: 1; background: var(--console-bg); 
+            color: #ddd; padding: 15px; font-family: 'Fira Code', monospace; 
+            font-size: 13px; overflow-y: auto;
+        }
+        .log-msg { padding: 6px 0; border-bottom: 1px solid #222; line-height: 1.4; }
+        .log-error { color: var(--error); background: rgba(244,135,113,0.05); }
+        .log-info { color: #4fc1ff; }
+
+        /* --- MODALS --- */
+        .modal {
+            display: none; position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); background: #252526;
+            border: 1px solid #454545; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            width: 90%; max-width: 400px; z-index: 6000; border-radius: 8px; padding: 20px;
+        }
+        .snippet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .snippet-btn { background: #333; color: #ccc; border: 1px solid #444; padding: 10px; border-radius: 4px; cursor: pointer; text-align: left; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5900; }
+        #colorPickerInput { visibility: hidden; width: 0; height: 0; position: absolute; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="brand">
-            A.S Code <span class="brand-badge">STUDIO</span>
-        </div>
-        <div class="header-actions">
-            <button class="btn" onclick="insertTemplate()">📄 Insert Test App</button>
-            <button class="btn btn-primary" onclick="forceRender()">▶ Run Script</button>
+        <div class="brand">A.S Code <span style="font-size:10px; color:var(--accent); vertical-align:super;">PRO</span></div>
+        <div class="toolbar-group">
+            <button class="btn btn-icon" onclick="contactUs()" title="Contact Us">📧</button>
+            <button class="btn btn-icon" onclick="openSnippets()" title="Snippets">⚡</button>
+            <button class="btn btn-icon" onclick="document.execCommand('undo')" title="Undo">↩️</button>
+            <button class="btn btn-icon" onclick="toggleSearch()" title="Search">🔍</button>
+            <button class="btn btn-icon" onclick="document.getElementById('colorPickerInput').click()" title="Color Picker">🎨</button>
+            <button class="btn btn-icon" onclick="location.reload()" title="Refresh Page">🔄</button>
+            <button class="btn btn-primary" onclick="toggleRun()">📱 DEVICE PREVIEW</button>
+            <button class="btn btn-icon" onclick="saveFile()" title="Save">💾</button>
+            <button class="btn btn-icon" onclick="document.getElementById('fileInput').click()" title="Open">📂</button>
         </div>
     </header>
 
-    <div class="workspace">
-        <div class="editor-pane" id="editorPane">
-            <div class="editor-container">
-                <div class="gutter" id="gutter">1</div>
-                <textarea id="editor" spellcheck="false" placeholder=""></textarea>
-            </div>
+    <div id="searchBar">
+        <input type="text" id="searchInput" placeholder="Find text...">
+        <button class="btn" onclick="findText()">Find</button>
+        <button class="btn" onclick="toggleSearch()">✖</button>
+    </div>
+
+    <div class="workspace" id="workspace">
+        <div class="gutter" id="gutter">1</div>
+        <textarea id="editor" spellcheck="false" placeholder="<h1>Start Coding...</h1>"></textarea>
+    </div>
+
+    <div class="helper-bar">
+        <button class="helper-btn" onclick="insert('<')">&lt;</button>
+        <button class="helper-btn" onclick="insert('>')">&gt;</button>
+        <button class="helper-btn" onclick="insert('/')">/</button>
+        <button class="helper-btn" onclick="insert('=')">=</button>
+        <button class="helper-btn" onclick="insert('\"')">"</button>
+        <button class="helper-btn" onclick="insert(';')">;</button>
+        <button class="helper-btn" onclick="insert('{')">{</button>
+        <button class="helper-btn" onclick="insert('}')">}</button>
+        <button class="helper-btn" onclick="insert('class=')">cls</button>
+        <button class="helper-btn" onclick="insert('id=')">id</button>
+        <button class="helper-btn" onclick="insert('!')">!</button>
+        <button class="helper-btn" onclick="insert('px')">px</button>
+    </div>
+
+    <div id="previewContainer">
+        <div class="preview-tabs">
+            <button id="tabResBtn" class="tab-btn active" onclick="switchTab('result')">🌐 Live Output</button>
+            <button id="tabConBtn" class="tab-btn" onclick="switchTab('console')">🐞 Console Logs</button>
+            <button class="close-btn" onclick="toggleRun()">✖ CLOSE PREVIEW</button>
         </div>
 
-        <div class="resizer" id="resizer"></div>
+        <div class="device-toolbar" id="devToolbar">
+            <div class="toolbar-select-wrapper">
+                <select id="devicePresetSelect" onchange="handlePresetChange(this.value)">
+                    <option value="responsive">💻 Desktop (Fluid)</option>
+                    <option value="android">📱 Android Mobile (360x740)</option>
+                    <option value="iphone">🍎 iPhone 13/14 Pro (390x844)</option>
+                    <option value="tablet">📲 Apple iPad Tablet (768x1024)</option>
+                </select>
+            </div>
 
-        <div class="preview-pane" id="previewPane">
+            <button class="dev-btn" id="rotateBtn" onclick="toggleOrientation()" title="Rotate Aspect Orientation">🔄 Rotate</button>
             
-            <div class="preview-toolbar">
-                <div class="toolbar-group">
-                    <select class="device-select" id="deviceSelect" onchange="changeDevice()">
-                        <option value="responsive">💻 Responsive Fluid</option>
-                        <option value="iphone15">📱 iPhone 15 Pro</option>
-                        <option value="iphoneSE">📱 iPhone SE</option>
-                        <option value="pixel8">📱 Pixel 8</option>
-                        <option value="ipad">📲 iPad Air</option>
-                        <option value="desktop">🖥️ Desktop 1080p</option>
-                    </select>
-                    <button class="icon-btn" id="rotateBtn" onclick="toggleRotate()" title="Rotate Device">🔄</button>
-                </div>
-
-                <div class="toolbar-group">
-                    <button class="icon-btn" onclick="changeZoom(-0.1)" title="Zoom Out">➖</button>
-                    <span id="zoomLabel" style="font-size:12px; color:#aaa; width:40px; text-align:center; font-family:'Fira Code', monospace;">100%</span>
-                    <button class="icon-btn" onclick="changeZoom(0.1)" title="Zoom In">➕</button>
-                    <button class="icon-btn" onclick="resetZoom()" title="Reset Zoom">⛶</button>
-                </div>
-
-                <div class="toolbar-group">
-                    <button class="icon-btn" onclick="forceRender()" title="Hard Refresh">♻️</button>
-                </div>
-
-                <div class="live-toggle" onclick="toggleLivePreview()">
-                    <div class="live-dot active" id="liveDot"></div>
-                    Live Preview
-                </div>
+            <div class="dev-btn-group">
+                <button class="dev-btn" onclick="adjustZoom(-0.1)" title="Zoom Out">-</button>
+                <button class="dev-btn" id="zoomLabelBtn" style="min-width:50px; pointer-events:none;">100%</button>
+                <button class="dev-btn" onclick="adjustZoom(0.1)" title="Zoom In">+</button>
             </div>
 
-            <div class="canvas-area" id="canvasArea">
-                <div class="device-frame" id="deviceFrame">
-                    <div class="notch"></div>
-                    <div class="device-screen">
-                        <div class="custom-modal-backdrop" id="alertModal">
-                            <div class="custom-modal">
-                                <div class="modal-msg" id="alertMsg"></div>
-                                <div class="modal-actions">
-                                    <button class="btn btn-primary" onclick="closeAlert()">OK</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="error-overlay" id="errorOverlay">
-                            <span class="close-err" onclick="document.getElementById('errorOverlay').classList.remove('show')">✖</span>
-                            <strong style="font-size:14px;">Runtime Error</strong>
-                            <span id="errorText"></span>
-                        </div>
-
-                        <iframe id="preview-iframe" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
-                    </div>
-                </div>
-            </div>
-
-            <div class="console-panel">
-                <div class="console-header">
-                    <div class="console-title">🐞 DevTools Console</div>
-                    <button class="icon-btn" style="height:24px; width:24px;" onclick="clearConsole()" title="Clear Console">🚫</button>
-                </div>
-                <div class="console-logs" id="consoleLogs">
-                    <div class="log-entry log-type-system">
-                        <span class="log-time">[System]</span> A.S Code Virtual Engine Initialized.
-                    </div>
-                </div>
-            </div>
+            <button class="dev-btn" onclick="toggleRuler()" title="Toggle Pixel Alignment Grids">📏 Ruler</button>
+            <button class="dev-btn" onclick="refreshPreviewTarget()" title="Hard Reload Code Instance">🔄 Reload</button>
+            <button class="dev-btn" id="fullscreenBtn" onclick="toggleFullscreenPreview()" title="True Frame Fullscreen Container">📺 Fullscreen</button>
             
+            <div class="hud-label" id="dimensionHUD">Responsive: 100% × 100%</div>
+        </div>
+
+        <div class="preview-viewport-area">
+            <div class="ruler-overlay" id="rulerOverlay"></div>
+            
+            <div class="device-frame-wrapper" id="deviceFrameWrapper">
+                <div class="device-status-bar">
+                    <span id="statusTime">09:41</span>
+                    <span style="letter-spacing: 1px;">📶 🪫</span>
+                </div>
+                <div class="iframe-container">
+                    <div class="frame-loader-shield" id="frameShield">Compiling Render Engine...</div>
+                    <iframe id="outputFrame"></iframe>
+                </div>
+            </div>
+
+            <div id="consoleArea"></div>
         </div>
     </div>
+
+    <div class="overlay" id="overlay" onclick="closeAllModals()"></div>
+
+    <div class="modal" id="templateModal">
+        <h3 style="color:white; margin:0 0 10px 0;">Insert Template</h3>
+        <div class="snippet-grid">
+            <button class="snippet-btn" onclick="insertSnippet('html')">🌐 HTML5 Base</button>
+            <button class="snippet-btn" onclick="insertSnippet('css')">🎨 CSS Reset</button>
+            <button class="snippet-btn" onclick="insertSnippet('nav')">🗺️ Navbar</button>
+            <button class="snippet-btn" onclick="insertSnippet('card')">🃏 Card UI</button>
+            <button class="snippet-btn" onclick="insertSnippet('btn')">🔘 Button</button>
+            <button class="snippet-btn" onclick="insertSnippet('js')">⚙️ JS Script</button>
+        </div>
+        <button onclick="closeAllModals()" style="margin-top:10px; width:100%; padding:8px; cursor:pointer; background:#444; color:white; border:none;">Cancel</button>
+    </div>
+
+    <div class="modal" id="contactModal">
+        <h3 style="color:white; margin:0 0 15px 0;">📧 Contact Support</h3>
+        <div style="background:#1e1e1e; padding:12px; border:1px solid #444; border-radius:4px; margin-bottom:15px; color:#fff; word-break: break-all; text-align:center; font-family:'Fira Code', monospace;">
+            etho98g@gmail.com
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button class="snippet-btn" style="flex:1; text-align:center; background:#007acc; border-color:#007acc; color:white; font-weight:bold;" onclick="copyEmail(this)">Copy</button>
+            <button class="snippet-btn" style="flex:1; text-align:center;" onclick="closeAllModals()">Close</button>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".html,.txt,.js,.css" onchange="loadFile(event)" style="display:none;">
+    <input type="color" id="colorPickerInput" onchange="insertColor(this)">
 
     <script>
-        // --- DOM Elements ---
-        const editor = document.getElementById('editor');
-        const gutter = document.getElementById('gutter');
-        const iframe = document.getElementById('preview-iframe');
-        const deviceFrame = document.getElementById('deviceFrame');
-        const deviceSelect = document.getElementById('deviceSelect');
-        const zoomLabel = document.getElementById('zoomLabel');
-        const liveDot = document.getElementById('liveDot');
-        const consoleLogs = document.getElementById('consoleLogs');
-        const errorOverlay = document.getElementById('errorOverlay');
-        const errorText = document.getElementById('errorText');
-        const alertModal = document.getElementById('alertModal');
-        const alertMsg = document.getElementById('alertMsg');
+        // --- SERVICE WORKER REGISTRATION ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log(err));
+            });
+        }
 
-        // --- State ---
-        let livePreview = true;
-        let isRotated = false;
-        let currentZoom = 1;
-        let renderTimeout;
+        const editor = document.getElementById("editor");
+        const gutter = document.getElementById("gutter");
+        const previewContainer = document.getElementById("previewContainer");
+        const frame = document.getElementById("outputFrame");
+        const consoleArea = document.getElementById("consoleArea");
+        
+        // Extended Responsive Preview State Systems
+        const deviceWrapper = document.getElementById("deviceFrameWrapper");
+        const dimensionHUD = document.getElementById("dimensionHUD");
+        const zoomLabelBtn = document.getElementById("zoomLabelBtn");
+        const frameShield = document.getElementById("frameShield");
+        const rulerOverlay = document.getElementById("rulerOverlay");
+        const deviceSelect = document.getElementById("devicePresetSelect");
+        const devToolbar = document.getElementById("devToolbar");
 
-        // Device Library
-        const devices = {
-            responsive: { w: '100%', h: '100%', hardware: false, notch: false },
-            iphone15: { w: 393, h: 852, hardware: true, notch: true },
-            iphoneSE: { w: 320, h: 568, hardware: true, notch: false },
-            pixel8: { w: 412, h: 892, hardware: true, notch: false },
-            ipad: { w: 820, h: 1180, hardware: true, notch: false },
-            desktop: { w: 1920, h: 1080, hardware: false, notch: false }
+        let currentDevice = 'responsive';
+        let isLandscape = false;
+        let zoomScale = 1.0;
+        let isFullscreenMode = false;
+        
+        // Live Preview State Variables
+        let isLivePreviewEnabled = true;
+        let liveUpdateTimer;
+
+        const deviceMetrics = {
+            responsive: { width: "100%", height: "100%", name: "Desktop (Fluid)" },
+            android: { width: 360, height: 740, name: "Android Mobile" },
+            iphone: { width: 390, height: 844, name: "iPhone 14 Pro" },
+            tablet: { width: 768, height: 1024, name: "Apple iPad" }
         };
 
-        // --- Editor Core ---
-        editor.addEventListener('input', () => {
-            updateGutter();
-            if (livePreview) {
-                clearTimeout(renderTimeout);
-                renderTimeout = setTimeout(renderPreview, 500); // Debounce
+        window.onload = function() {
+            const saved = localStorage.getItem("as-code-fixed");
+            if (saved) editor.value = saved;
+            updateUI();
+            updateClock();
+            setInterval(updateClock, 60000);
+            
+            // Dynamically inject the Live Preview Toggle into the Dev Toolbar
+            if(devToolbar) {
+                const liveToggleHtml = `
+                    <button class="dev-btn active" id="liveToggleBtn" onclick="toggleLivePreview()" title="Toggle Auto-Update (Ctrl+L)" style="min-width: 95px;">
+                        <span id="liveStatusDot" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#4caf50; margin-right:5px; transition: background 0.2s;"></span>
+                        <span id="liveToggleText">Live: ON</span>
+                    </button>
+                `;
+                devToolbar.insertAdjacentHTML('afterbegin', liveToggleHtml);
             }
-        });
+        };
 
-        editor.addEventListener('scroll', () => {
-            gutter.scrollTop = editor.scrollTop;
-        });
-
-        editor.addEventListener('keydown', (e) => {
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                const start = editor.selectionStart;
-                const end = editor.selectionEnd;
-                editor.value = editor.value.substring(0, start) + '    ' + editor.value.substring(end);
-                editor.selectionStart = editor.selectionEnd = start + 4;
-                updateGutter();
-            }
-        });
-
-        function updateGutter() {
-            const lines = editor.value.split('\n').length;
-            gutter.innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join('<br>');
-        }
-
-        // --- Layout Resizer (Split Pane) ---
-        const resizer = document.getElementById('resizer');
-        const editorPane = document.getElementById('editorPane');
-        let isDragging = false;
-
-        resizer.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            resizer.classList.add('dragging');
-            document.body.style.cursor = 'col-resize';
-            iframe.style.pointerEvents = 'none'; // Prevent iframe capturing mouse
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            const containerWidth = document.body.clientWidth;
-            const newWidth = (e.clientX / containerWidth) * 100;
-            if (newWidth > 10 && newWidth < 90) {
-                editorPane.style.width = `${newWidth}%`;
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                resizer.classList.remove('dragging');
-                document.body.style.cursor = 'default';
-                iframe.style.pointerEvents = 'auto';
-            }
-        });
-
-        // --- Engine Rendering ---
-        function toggleLivePreview() {
-            livePreview = !livePreview;
-            liveDot.classList.toggle('active', livePreview);
-            if(livePreview) renderPreview();
-        }
-
-        function forceRender() {
-            errorOverlay.classList.remove('show');
-            renderPreview();
-        }
-
-        // The JS interceptor injects itself into the srcdoc to map iframe logs/errors/alerts to parent
-        const sandboxInterceptor = `
-            <script>
-                // Map Console
-                ['log', 'info', 'warn', 'error'].forEach(method => {
-                    const original = console[method];
-                    console[method] = function(...args) {
-                        window.parent.postMessage({ type: 'console', level: method, message: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ') }, '*');
-                        original.apply(console, args);
-                    };
-                });
-
-                // Catch Errors
-                window.addEventListener('error', (e) => {
-                    window.parent.postMessage({ type: 'error', message: e.message, line: e.lineno }, '*');
-                });
+        editor.addEventListener("input", () => {
+            updateUI();
+            localStorage.setItem("as-code-fixed", editor.value);
+            
+            // Trigger Live Preview with 400ms Debounce
+            if (isLivePreviewEnabled && previewContainer.classList.contains("show")) {
+                const statusDot = document.getElementById('liveStatusDot');
+                if (statusDot) statusDot.style.background = '#ff9800'; // Orange = Updating
                 
-                // Override alerts for sandbox safety & UX
-                window.alert = function(msg) {
-                    window.parent.postMessage({ type: 'alert', message: String(msg) }, '*');
-                };
-            <\/script>
-        `;
-
-        function renderPreview() {
-            let code = editor.value;
-            // Inject interceptor right after <head> or at the top
-            if (code.includes('<head>')) {
-                code = code.replace('<head>', '<head>' + sandboxInterceptor);
-            } else {
-                code = sandboxInterceptor + code;
-            }
-            
-            // Use srcdoc for fast, flicker-free rendering
-            iframe.srcdoc = code;
-        }
-
-        // --- Intercept Message Listener ---
-        window.addEventListener('message', (event) => {
-            const data = event.data;
-            if (!data || !data.type) return;
-
-            if (data.type === 'console') {
-                logToConsole(data.level, data.message);
-            } else if (data.type === 'error') {
-                logToConsole('error', `Line ${data.line}: ${data.message}`);
-                showErrorOverlay(`Line ${data.line}: ${data.message}`);
-            } else if (data.type === 'alert') {
-                showAlertModal(data.message);
+                clearTimeout(liveUpdateTimer);
+                liveUpdateTimer = setTimeout(() => {
+                    updatePreviewLive();
+                }, 400); 
             }
         });
 
-        // --- Console UI ---
-        function logToConsole(level, msg) {
-            const entry = document.createElement('div');
-            entry.className = `log-entry log-type-${level}`;
-            
+        editor.addEventListener("scroll", () => { gutter.scrollTop = editor.scrollTop; });
+        editor.addEventListener("keydown", (e) => { if (e.key === "Tab") { e.preventDefault(); insert("    "); } });
+
+        function updateUI() {
+            const lines = editor.value.split("\n").length;
+            gutter.innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join("<br>");
+        }
+
+        function updateClock() {
             const now = new Date();
-            const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
-            
-            entry.innerHTML = `<span class="log-time">[${timeStr}]</span> <span>${escapeHTML(msg)}</span>`;
-            consoleLogs.appendChild(entry);
-            consoleLogs.scrollTop = consoleLogs.scrollHeight;
-        }
-
-        function clearConsole() {
-            consoleLogs.innerHTML = '';
-        }
-
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, tag => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-            }[tag]));
-        }
-
-        function showErrorOverlay(msg) {
-            errorText.textContent = msg;
-            errorOverlay.classList.add('show');
-        }
-
-        // --- Custom Alert Modal ---
-        function showAlertModal(msg) {
-            alertMsg.textContent = msg;
-            alertModal.classList.add('show');
-        }
-        function closeAlert() {
-            alertModal.classList.remove('show');
-        }
-
-        // --- Emulator Controls ---
-        function changeDevice() {
-            const dev = devices[deviceSelect.value];
-            
-            // Handle dimensions & rotation
-            let w = dev.w;
-            let h = dev.h;
-            
-            if (dev.w !== '100%' && isRotated) {
-                w = dev.h;
-                h = dev.w;
+            const timeSpan = document.getElementById("statusTime");
+            if(timeSpan) {
+                timeSpan.textContent = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
             }
+        }
 
-            const suffix = typeof w === 'number' ? 'px' : '';
-            deviceFrame.style.width = w + suffix;
-            deviceFrame.style.height = h + suffix;
+        // --- CONTACT ---
+        function contactUs() {
+            document.getElementById("overlay").style.display = "block";
+            document.getElementById("contactModal").style.display = "block";
+        }
+        function copyEmail(btn) {
+            navigator.clipboard.writeText("etho98g@gmail.com");
+            const originalText = btn.innerText;
+            btn.innerText = "✓ Copied!";
+            btn.style.background = "#28a745";
+            setTimeout(() => { btn.innerText = originalText; btn.style.background = "#007acc"; }, 2000);
+        }
 
-            // Handle Hardware UI
-            deviceFrame.classList.toggle('has-hardware', dev.hardware);
-            
-            // Adjust Notch for rotation
-            if (dev.notch && !isRotated) {
-                deviceFrame.classList.add('has-notch');
+        // --- MODALS ---
+        function openSnippets() { 
+            document.getElementById("overlay").style.display = "block"; 
+            document.getElementById("templateModal").style.display = "block"; 
+        }
+        function closeAllModals() {
+            document.getElementById("overlay").style.display = "none";
+            document.getElementById("templateModal").style.display = "none";
+            document.getElementById("contactModal").style.display = "none";
+        }
+
+        // --- CORE RUN & ENGINE ROUTINES ---
+        function toggleRun() {
+            if (previewContainer.classList.contains("show")) {
+                previewContainer.classList.remove("show");
+                setTimeout(() => { previewContainer.style.display = "none"; }, 250);
             } else {
-                deviceFrame.classList.remove('has-notch');
+                previewContainer.style.display = "flex";
+                previewContainer.offsetHeight;
+                previewContainer.classList.add("show");
+                setPreviewDevice(currentDevice);
+                runCode();
             }
-
-            // Fit scale if hardware is larger than canvas
-            resetZoom();
         }
 
-        function toggleRotate() {
-            if (deviceSelect.value === 'responsive' || deviceSelect.value === 'desktop') return;
-            isRotated = !isRotated;
-            changeDevice();
-        }
-
-        function changeZoom(delta) {
-            currentZoom = Math.max(0.3, Math.min(2.5, currentZoom + delta));
-            applyZoom();
-        }
-
-        function resetZoom() {
-            currentZoom = 1;
-            applyZoom();
+        function runCode() {
+            consoleArea.innerHTML = "";
+            frameShield.classList.add("loading");
             
-            // Auto-scale down if device is taller than canvas
-            if (deviceSelect.value !== 'responsive') {
-                const canvasArea = document.getElementById('canvasArea');
-                const dev = devices[deviceSelect.value];
-                const targetH = isRotated ? dev.w : dev.h;
+            const code = editor.value;
+            const consoleScript = `<script>
+                    window.onerror = function(msg, url, line) { window.parent.postMessage({type: 'error', msg: msg + " (Line " + line + ")"}, '*'); };
+                    const originalLog = console.log;
+                    console.log = function(...args) { originalLog.apply(console, args); window.parent.postMessage({type: 'log', msg: args.join(" ")}, '*'); };
+                <\/script>`;
                 
-                // Add padding buffer
-                if (typeof targetH === 'number' && (targetH + 60) > canvasArea.clientHeight) {
-                    currentZoom = (canvasArea.clientHeight - 60) / targetH;
-                    applyZoom();
+            setTimeout(() => {
+                frame.contentWindow.document.open();
+                frame.contentWindow.document.write(consoleScript + code);
+                frame.contentWindow.document.close();
+                frameShield.classList.remove("loading");
+            }, 300);
+        }
+
+        function refreshPreviewTarget() {
+            runCode();
+        }
+
+        window.addEventListener('message', function(e) {
+            if (e.data.type === 'log') {
+                const div = document.createElement('div');
+                div.className = 'log-msg log-info'; div.textContent = "> " + e.data.msg;
+                consoleArea.appendChild(div);
+            } else if (e.data.type === 'error') {
+                const div = document.createElement('div');
+                div.className = 'log-msg log-error'; div.textContent = "❌ " + e.data.msg;
+                consoleArea.appendChild(div);
+            }
+        });
+
+        function switchTab(tab) {
+            document.getElementById('tabResBtn').classList.remove('active');
+            document.getElementById('tabConBtn').classList.remove('active');
+            
+            if (tab === 'result') {
+                document.getElementById('tabResBtn').classList.add('active');
+                deviceWrapper.style.display = 'flex';
+                devToolbar.style.display = 'flex';
+                consoleArea.style.display = 'none';
+            } else {
+                document.getElementById('tabConBtn').classList.add('active');
+                deviceWrapper.style.display = 'none';
+                devToolbar.style.display = 'none';
+                consoleArea.style.display = 'block';
+            }
+        }
+
+        // --- MODERN MULTI-DEVICE IMPLEMENTATION ENGINE ---
+        function handlePresetChange(val) {
+            setPreviewDevice(val);
+        }
+
+        function setPreviewDevice(device) {
+            currentDevice = device;
+            deviceSelect.value = device;
+            
+            deviceWrapper.className = "device-frame-wrapper";
+            
+            if (device === 'responsive') {
+                updatePreviewSize("100%", "100%");
+            } else {
+                deviceWrapper.classList.add("phone-chassis");
+                if (device === 'iphone') {
+                    deviceWrapper.classList.add("apple-notch");
+                }
+                
+                const metric = deviceMetrics[device];
+                let targetWidth = isLandscape ? metric.height : metric.width;
+                let targetHeight = isLandscape ? metric.width : metric.height;
+                
+                updatePreviewSize(targetWidth, targetHeight);
+            }
+        }
+
+        function updatePreviewSize(width, height) {
+            const suffix = (typeof width === 'number') ? 'px' : '';
+            deviceWrapper.style.width = width + suffix;
+            deviceWrapper.style.height = height + suffix;
+            
+            const labelName = deviceMetrics[currentDevice].name;
+            const computedW = (width === "100%") ? deviceWrapper.clientWidth : width;
+            const computedH = (height === "100%") ? deviceWrapper.clientHeight : height;
+            
+            dimensionHUD.textContent = `${labelName}: ${computedW}px × ${computedH}px`;
+            applyTransformationMatrix();
+        }
+
+        function toggleOrientation() {
+            if (currentDevice === 'responsive') return;
+            isLandscape = !isLandscape;
+            setPreviewDevice(currentDevice);
+        }
+
+        function adjustZoom(delta) {
+            zoomScale = Math.max(0.3, Math.min(2.0, zoomScale + delta));
+            zoomLabelBtn.textContent = Math.round(zoomScale * 100) + "%";
+            applyTransformationMatrix();
+        }
+
+        function applyTransformationMatrix() {
+            deviceWrapper.style.transform = `scale(${zoomScale})`;
+        }
+
+        function toggleRuler() {
+            rulerOverlay.classList.toggle("active");
+        }
+
+        function toggleFullscreenPreview() {
+            isFullscreenMode = !isFullscreenMode;
+            const fsBtn = document.getElementById("fullscreenBtn");
+            
+            if (isFullscreenMode) {
+                fsBtn.classList.add("active");
+                devToolbar.style.position = "absolute";
+                devToolbar.style.top = "0";
+                devToolbar.style.left = "0";
+                devToolbar.style.width = "100%";
+                devToolbar.style.zIndex = "6000";
+                devToolbar.style.background = "rgba(45,45,45,0.95)";
+                setPreviewDevice('responsive');
+            } else {
+                fsBtn.classList.remove("active");
+                devToolbar.style.position = "static";
+                devToolbar.style.width = "100%";
+                setPreviewDevice(deviceSelect.value);
+            }
+        }
+        
+        // --- SNIPPETS EXTENSION ---
+        const snippets = {
+            html: `<!DOCTYPE html>\n<html>\n<head>\n<style>\n  body{ padding:20px; font-family:sans-serif; background:#f9f9f9; color:#333; }\n</style>\n</head>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>`,
+            css: `* { margin:0; box-sizing:border-box; }`,
+            nav: `<nav style="background:#333; color:white; padding:15px; display:flex; justify-content:space-between; font-family:sans-serif;">\n  <b>Logo</b>\n  <div>Home • About</div>\n</nav>`,
+            card: `<div style="border:1px solid #ddd; padding:20px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.05); font-family:sans-serif; max-width:300px; background:white;">\n  <h3 style="margin-top:0;">Premium Card UI</h3>\n  <p style="color:#666; font-size:14px;">This layout architecture automatically conforms to device scaling vectors seamlessly.</p>\n</div>`,
+            btn: `<button style="background:#007acc; color:white; padding:10px 20px; border:none; border-radius:5px; font-weight:bold; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#0062a3'" onmouseout="this.style.background='#007acc'">Interact</button>`,
+            js: `<script>\n  console.log('App Core Initialization Process Complete.');\n<\/script>`
+        };
+        function insertSnippet(k) { insert(snippets[k]); closeAllModals(); }
+
+        function insertColor(input) { insert(input.value); }
+
+        function toggleSearch() {
+            const bar = document.getElementById("searchBar");
+            bar.style.display = bar.style.display === "flex" ? "none" : "flex";
+            if(bar.style.display === "flex") document.getElementById("searchInput").focus();
+        }
+
+        function findText() {
+            const query = document.getElementById("searchInput").value;
+            if (!query) return;
+            const index = editor.value.indexOf(query, editor.selectionEnd);
+            if (index !== -1) { editor.focus(); editor.setSelectionRange(index, index + query.length); }
+            else { alert("Not found"); }
+        }
+
+        function insert(text) {
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const val = editor.value;
+            editor.value = val.substring(0, start) + text + val.substring(end);
+            editor.selectionStart = editor.selectionEnd = start + text.length;
+            editor.focus();
+            updateUI();
+            editor.dispatchEvent(new Event('input'));
+        }
+
+        function saveFile() {
+            const blob = new Blob([editor.value], { type: "text/html" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "index.html";
+            a.click();
+        }
+
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) { editor.value = e.target.result; updateUI(); };
+            reader.readAsText(file);
+        }
+        
+        // --- LIVE PREVIEW UPDATE ENGINE ---
+        function updatePreviewLive() {
+            if (!isLivePreviewEnabled) return;
+            
+            const statusDot = document.getElementById('liveStatusDot');
+            const code = editor.value;
+            
+            const consoleScript = `<script>
+                window.onerror = function(msg, url, line) { window.parent.postMessage({type: 'error', msg: msg + " (Line " + line + ")"}, '*'); };
+                const originalLog = console.log;
+                console.log = function(...args) { originalLog.apply(console, args); window.parent.postMessage({type: 'log', msg: args.join(" ")}, '*'); };
+            <\/script>`;
+
+            try {
+                consoleArea.innerHTML = ""; 
+                
+                const doc = frame.contentWindow.document;
+                doc.open();
+                doc.write(consoleScript + code);
+                doc.close();
+
+                if (statusDot) {
+                    setTimeout(() => { statusDot.style.background = '#4caf50'; }, 150);
+                }
+            } catch (e) {
+                console.error("Live render error:", e);
+                if (statusDot) statusDot.style.background = '#f44336'; 
+            }
+        }
+
+        function toggleLivePreview() {
+            isLivePreviewEnabled = !isLivePreviewEnabled;
+            const btn = document.getElementById("liveToggleBtn");
+            const dot = document.getElementById("liveStatusDot");
+            const text = document.getElementById("liveToggleText");
+
+            if (isLivePreviewEnabled) {
+                btn.classList.add("active");
+                dot.style.background = '#4caf50';
+                text.innerText = "Live: ON";
+                updatePreviewLive(); 
+            } else {
+                btn.classList.remove("active");
+                dot.style.background = '#777';
+                text.innerText = "Live: OFF";
+            }
+        }
+
+        // --- KEYBOARD SHORTCUT LISTENERS ---
+        document.addEventListener("keydown", (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                saveFile(); 
+                if (previewContainer.classList.contains("show")) {
+                    runCode(); 
                 }
             }
-        }
-
-        function applyZoom() {
-            deviceFrame.style.transform = `scale(${currentZoom})`;
-            zoomLabel.textContent = `${Math.round(currentZoom * 100)}%`;
-        }
-
-        // Handle window resize auto-scaling
-        window.addEventListener('resize', () => {
-            if (deviceSelect.value !== 'responsive') {
-                resetZoom();
+            
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
+                e.preventDefault();
+                if (previewContainer.classList.contains("show")) {
+                    toggleLivePreview();
+                }
             }
         });
-
-        // --- Initial Test Content ---
-        function insertTemplate() {
-            const template = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>A.S Code Test App</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-  body { 
-    background: #f0f2f5; 
-    color: #333; 
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: 70px;
-  }
-  header {
-    background: #007acc; color: white; padding: 1rem;
-    position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  }
-  .grid {
-    display: grid; padding: 1.5rem; gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  }
-  .card {
-    background: white; padding: 1.5rem; border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    transition: transform 0.2s; cursor: pointer;
-  }
-  .card:hover { transform: translateY(-5px); }
-  .bottom-bar {
-    position: fixed; bottom: 0; left: 0; width: 100%;
-    background: #1e1e1e; color: white; text-align: center;
-    padding: 1rem; padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  }
-  button {
-    background: #007acc; color: white; border: none; padding: 10px 15px;
-    border-radius: 6px; cursor: pointer; margin-top: 10px;
-  }
-</style>
-</head>
-<body>
-  <header><h3>📱 Emulator Test</h3></header>
-  <div class="grid">
-    <div class="card">
-      <h3>Grid Layout</h3>
-      <p>Watch me stack on mobile and sit side-by-side on desktop.</p>
-      <button onclick="testLog()">Test Console</button>
-    </div>
-    <div class="card">
-      <h3>Alert Modals</h3>
-      <p>Test the intercepted custom alert system.</p>
-      <button onclick="testAlert()">Trigger Alert</button>
-    </div>
-    <div class="card">
-      <h3>Error Handling</h3>
-      <p>Trigger a deliberate error to test the overlay.</p>
-      <button onclick="triggerError()" style="background:#dc2626;">Crash App</button>
-    </div>
-  </div>
-  <div class="bottom-bar">
-    Fixed Bottom Bounds - Width: <span id="w"></span>px
-  </div>
-
-  <script>
-    console.log("App mounted safely.");
-    
-    const updateW = () => document.getElementById('w').innerText = window.innerWidth;
-    window.addEventListener('resize', updateW);
-    updateW();
-
-    function testLog() {
-      console.log("Button clicked! Current dimensions:", window.innerWidth, "x", window.innerHeight);
-    }
-
-    function testAlert() {
-      alert("This is a sandbox-safe modal replacing the native browser alert!");
-    }
-
-    function triggerError() {
-      console.log("Initiating crash sequence...");
-      nonExistentFunction(); // Throws error
-    }
-  <\/script>
-</body>
-</html>`;
-            editor.value = template;
-            updateGutter();
-            renderPreview();
-        }
-
-        // Initialize
-        updateGutter();
-        changeDevice();
-        
     </script>
 </body>
 </html>
