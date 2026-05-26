@@ -37,9 +37,93 @@
             overflow: hidden; 
         }
 
-        body.modal-open {
-            overflow: hidden;
+        body.modal-open { overflow: hidden; }
+
+        /* --- AUTHENTICATION LOCK SCREEN (NEW) --- */
+        #authOverlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 15, 17, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            z-index: 99999; display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
         }
+        #authOverlay.unlocked { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        .auth-card {
+            background: rgba(30, 30, 32, 0.7); border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255,255,255,0.1);
+            width: 90%; max-width: 420px; border-radius: 20px; padding: 40px 30px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            position: relative; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .auth-icon-wrapper {
+            width: 64px; height: 64px; background: rgba(0, 122, 204, 0.15); border: 1px solid rgba(0, 122, 204, 0.3);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
+            color: #4fc1ff; box-shadow: 0 0 30px rgba(0, 122, 204, 0.2); transition: all 0.5s ease;
+        }
+        .auth-icon-wrapper svg { width: 32px; height: 32px; fill: currentColor; transition: transform 0.5s ease; }
+        
+        .auth-title { color: #fff; font-size: 22px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: 0.5px; }
+        .auth-subtitle { color: #999; font-size: 14px; margin: 0 0 30px 0; }
+
+        .auth-input-group { width: 100%; position: relative; margin-bottom: 20px; }
+        .auth-input {
+            width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff; font-size: 16px; padding: 14px 45px 14px 16px; border-radius: 10px;
+            font-family: 'Fira Code', monospace; transition: all 0.3s ease; letter-spacing: 2px;
+        }
+        .auth-input:focus { border-color: var(--accent); background: rgba(0, 0, 0, 0.6); box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.2); }
+        .auth-input::placeholder { color: #555; letter-spacing: normal; font-family: 'Segoe UI', sans-serif; }
+        
+        .auth-eye-btn {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: #888; cursor: pointer; font-size: 18px; padding: 4px;
+            transition: color 0.2s;
+        }
+        .auth-eye-btn:hover { color: #fff; }
+
+        .caps-warning {
+            position: absolute; top: -25px; right: 0; background: #ff9800; color: #fff; font-size: 11px;
+            padding: 4px 8px; border-radius: 4px; font-weight: bold; display: none;
+            box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3); animation: fadeIn 0.2s ease;
+        }
+
+        .auth-error {
+            color: #ff5252; background: rgba(255, 82, 82, 0.1); border: 1px solid rgba(255, 82, 82, 0.3);
+            width: 100%; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 500;
+            margin-bottom: 20px; display: none; animation: fadeIn 0.3s ease;
+        }
+
+        .auth-btn {
+            width: 100%; background: linear-gradient(135deg, var(--accent), #005f9e); color: white;
+            border: none; padding: 14px; font-size: 15px; font-weight: bold; border-radius: 10px; cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s; box-shadow: 0 8px 20px rgba(0, 122, 204, 0.3);
+        }
+        .auth-btn:hover { box-shadow: 0 10px 25px rgba(0, 122, 204, 0.5); }
+        .auth-btn:active { transform: scale(0.97); }
+
+        .auth-contact-box {
+            margin-top: 25px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.08);
+            width: 100%; font-size: 12px; color: #777; line-height: 1.6;
+        }
+        .auth-contact-box a { color: #4fc1ff; text-decoration: none; font-weight: 500; transition: color 0.2s; }
+        .auth-contact-box a:hover { color: #fff; text-decoration: underline; }
+        
+        .auth-footer-text { margin-top: 20px; font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+
+        /* Auth Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-12px); }
+            40% { transform: translateX(12px); }
+            60% { transform: translateX(-8px); }
+            80% { transform: translateX(8px); }
+        }
+        .shake-anim { animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+        
+        .loading-dots::after { content: ''; animation: dots 1.5s steps(4, end) infinite; }
+        @keyframes dots { 0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%, 100% { content: '...'; } }
 
         /* --- HEADER --- */
         header {
@@ -400,10 +484,43 @@
 </head>
 <body>
 
+    <div id="authOverlay">
+        <div class="auth-card" id="authCard">
+            <div class="auth-icon-wrapper" id="authIconWrap">
+                <svg id="lockIcon" viewBox="0 0 24 24">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+                </svg>
+                <svg id="unlockIcon" style="display:none;" viewBox="0 0 24 24">
+                    <path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h2c0-1.66 1.34-3 3-3s3 1.34 3 3v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/>
+                </svg>
+            </div>
+            
+            <h2 class="auth-title">Restricted Access</h2>
+            <p class="auth-subtitle">Please enter your password to continue.</p>
+            
+            <div class="auth-error" id="authError">Incorrect Password</div>
+
+            <div class="auth-input-group">
+                <input type="password" id="authPassword" class="auth-input" placeholder="Password" autocomplete="off">
+                <button class="auth-eye-btn" id="authEyeBtn" title="Show Password">👁️</button>
+                <div class="caps-warning" id="capsWarning">CAPS LOCK IS ON</div>
+            </div>
+            
+            <button class="auth-btn" id="authBtn">Unlock Website</button>
+            
+            <div class="auth-contact-box">
+                To get password please contact:<br>
+                <a href="mailto:aryansharma98g@gmail.com">aryansharma98g@gmail.com</a><br>
+                or <a href="mailto:etho98g@gmail.com">etho98g@gmail.com</a>
+            </div>
+            
+            <div class="auth-footer-text">Protected Access System</div>
+        </div>
+    </div>
+
     <header>
         <div class="brand">A.S Code <span style="font-size:10px; color:var(--accent); vertical-align:super;">PRO</span></div>
         <div class="toolbar-group">
-            <!-- MANUAL / HELP CONFIG BUTTON TRIGGER -->
             <button class="btn btn-info" onclick="openManualGuide()" title="Open Documentation Manual">📘 GUIDE</button>
             <button class="btn btn-icon" onclick="window.open('https://aryansharma1171.github.io/a.s-code-editor/index.html', '_blank')" title="Open Mobile Version">📱</button>
             <button class="btn btn-icon" onclick="contactUs()" title="Contact Us">📧</button>
@@ -413,7 +530,6 @@
             <button class="btn btn-icon" onclick="document.getElementById('colorPickerInput').click()" title="Color Picker">🎨</button>
             <button class="btn btn-icon" onclick="location.reload()" title="Refresh Page">🔄</button>
             
-            <!-- CORE ENGINE ACTION BUTTONS -->
             <button class="btn btn-success" id="splitToggleBtn" onclick="toggleSplitScreen()">⚡ LIVE SPLIT</button>
             <button class="btn btn-primary" onclick="toggleRun()">📱 FULL SCREEN</button>
             
@@ -434,7 +550,6 @@
             <textarea id="editor" spellcheck="false" placeholder="<h1>Start Coding...</h1>"></textarea>
         </div>
         
-        <!-- INLINE SPLIT SCREEN PREVIEW MECHANISM -->
         <div class="split-preview-panel" id="splitPreviewPanel">
             <div class="split-indicator-bar">
                 <span>🔴 Live Sync Active</span>
@@ -459,7 +574,6 @@
         <button class="helper-btn" onclick="insert('px')">px</button>
     </div>
 
-    <!-- ADVANCED SIMULATION PREVIEW COMPLEX CONTAINER -->
     <div id="previewContainer">
         <div class="preview-tabs">
             <button id="tabResBtn" class="tab-btn active" onclick="switchTab('result')">🌐 Live Output</button>
@@ -467,7 +581,6 @@
             <button class="close-btn" onclick="toggleRun()">✖ CLOSE PREVIEW</button>
         </div>
 
-        <!-- Dynamic Chrome DevTools-style Control Strip -->
         <div class="device-toolbar" id="devToolbar">
             <div class="toolbar-select-wrapper">
                 <select id="devicePresetSelect" onchange="handlePresetChange(this.value)">
@@ -496,7 +609,6 @@
         <div class="preview-viewport-area">
             <div class="ruler-overlay" id="rulerOverlay"></div>
             
-            <!-- Realistically scaled hardware bounding matrix frame -->
             <div class="device-frame-wrapper" id="deviceFrameWrapper">
                 <div class="device-status-bar">
                     <span id="statusTime">09:41</span>
@@ -508,12 +620,10 @@
                 </div>
             </div>
 
-            <!-- Standalone console window map target -->
             <div id="consoleArea"></div>
         </div>
     </div>
 
-    <!-- MODERN GLASSMORPHISM MANUAL POPUP STRUCTURE -->
     <div class="manual-overlay" id="manualOverlay" onclick="closeManualGuide()"></div>
     <div class="manual-modal" id="manualModal">
         <div class="manual-header">
@@ -619,6 +729,103 @@
     <input type="color" id="colorPickerInput" onchange="insertColor(this)">
 
     <script>
+        // --- AUTHENTICATION LOGIC (NEW) ---
+        const authOverlay = document.getElementById('authOverlay');
+        const authCard = document.getElementById('authCard');
+        const authPassword = document.getElementById('authPassword');
+        const authBtn = document.getElementById('authBtn');
+        const authError = document.getElementById('authError');
+        const authEyeBtn = document.getElementById('authEyeBtn');
+        const capsWarning = document.getElementById('capsWarning');
+        const lockIcon = document.getElementById('lockIcon');
+        const unlockIcon = document.getElementById('unlockIcon');
+        const authIconWrap = document.getElementById('authIconWrap');
+
+        // Block background interaction entirely on load
+        document.body.classList.add('modal-open');
+
+        function triggerAuthShake() {
+            authError.style.display = 'block';
+            authCard.classList.remove('shake-anim');
+            void authCard.offsetWidth; // Force CSS reflow to restart animation
+            authCard.classList.add('shake-anim');
+            
+            // Subtle icon color shift for error state
+            authIconWrap.style.color = '#ff5252';
+            authIconWrap.style.background = 'rgba(255, 82, 82, 0.1)';
+            authIconWrap.style.borderColor = 'rgba(255, 82, 82, 0.3)';
+            authIconWrap.style.boxShadow = '0 0 30px rgba(255, 82, 82, 0.2)';
+            setTimeout(() => {
+                authIconWrap.style.color = '#4fc1ff';
+                authIconWrap.style.background = 'rgba(0, 122, 204, 0.15)';
+                authIconWrap.style.borderColor = 'rgba(0, 122, 204, 0.3)';
+                authIconWrap.style.boxShadow = '0 0 30px rgba(0, 122, 204, 0.2)';
+            }, 500);
+        }
+
+        function unlockSystem() {
+            if (authPassword.value === 'aryan@123') {
+                authError.style.display = 'none';
+                
+                // Success UI Transitions
+                authBtn.innerHTML = 'Unlocking <span class="loading-dots"></span>';
+                authBtn.style.background = '#2e7d32'; // Green success color
+                
+                lockIcon.style.display = 'none';
+                unlockIcon.style.display = 'block';
+                authIconWrap.style.color = '#4caf50'; // Green success color
+                authIconWrap.style.background = 'rgba(76, 175, 80, 0.15)';
+                authIconWrap.style.borderColor = 'rgba(76, 175, 80, 0.3)';
+                authIconWrap.style.boxShadow = '0 0 30px rgba(76, 175, 80, 0.2)';
+                authIconWrap.style.transform = 'scale(1.1)';
+                
+                // Allow user data visualization and interaction
+                setTimeout(() => {
+                    authOverlay.classList.add('unlocked');
+                    document.body.classList.remove('modal-open');
+                    
+                    setTimeout(() => { 
+                        authOverlay.style.display = 'none'; 
+                    }, 800); // Wait for CSS fade transition
+                }, 600);
+            } else {
+                triggerAuthShake();
+            }
+        }
+
+        authBtn.addEventListener('click', unlockSystem);
+        
+        authPassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') unlockSystem();
+        });
+
+        // Caps Lock Detection Engine
+        authPassword.addEventListener('keyup', (e) => {
+            if (e.getModifierState && e.getModifierState('CapsLock')) {
+                capsWarning.style.display = 'block';
+            } else {
+                capsWarning.style.display = 'none';
+            }
+        });
+        authPassword.addEventListener('mousedown', (e) => {
+             if (e.getModifierState && e.getModifierState('CapsLock')) capsWarning.style.display = 'block';
+        });
+
+        // Password Show/Hide Toggle
+        authEyeBtn.addEventListener('click', () => {
+            if (authPassword.type === 'password') {
+                authPassword.type = 'text';
+                authEyeBtn.textContent = '🙈';
+            } else {
+                authPassword.type = 'password';
+                authEyeBtn.textContent = '👁️';
+            }
+        });
+
+        // Auto-focus Input
+        window.addEventListener('load', () => { authPassword.focus(); });
+
+
         // --- SERVICE WORKER REGISTRATION ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -632,13 +839,11 @@
         const frame = document.getElementById("outputFrame");
         const consoleArea = document.getElementById("consoleArea");
         
-        // Split-Screen Engine DOM Mapping Elements
         const editorContainer = document.getElementById("editorContainer");
         const splitPreviewPanel = document.getElementById("splitPreviewPanel");
         const splitFrame = document.getElementById("splitFrame");
         const splitToggleBtn = document.getElementById("splitToggleBtn");
 
-        // Extended Responsive Preview State Systems
         const deviceWrapper = document.getElementById("deviceFrameWrapper");
         const dimensionHUD = document.getElementById("dimensionHUD");
         const zoomLabelBtn = document.getElementById("zoomLabelBtn");
@@ -652,7 +857,6 @@
         let zoomScale = 1.0;
         let isFullscreenMode = false;
         
-        // System Operation Parameters
         let isLivePreviewEnabled = true;
         let isSplitScreenActive = false;
         let liveUpdateTimer;
@@ -665,13 +869,14 @@
         };
 
         window.onload = function() {
+            // Note: Background processes load silently behind the Auth Screen seamlessly.
             const saved = localStorage.getItem("as-code-fixed");
             if (saved) editor.value = saved;
             updateUI();
             updateClock();
             setInterval(updateClock, 60000);
+            authPassword.focus(); // Ensure focus remains on auth
             
-            // Inject dynamic control switch directly inside simulated fullscreen toolbar config
             if(devToolbar) {
                 const liveToggleHtml = `
                     <button class="dev-btn active" id="liveToggleBtn" onclick="toggleLivePreview()" title="Toggle Auto-Update (Ctrl+L)" style="min-width: 95px;">
@@ -687,7 +892,6 @@
             updateUI();
             localStorage.setItem("as-code-fixed", editor.value);
             
-            // Instantly route debounced render maps to whichever target engine layer context is operational
             if (isLivePreviewEnabled) {
                 const dotFull = document.getElementById('liveStatusDot');
                 const dotSplit = document.getElementById('splitStatusDot');
@@ -718,7 +922,6 @@
             }
         }
 
-        // --- CONTACT ---
         function contactUs() {
             document.getElementById("overlay").style.display = "block";
             document.getElementById("contactModal").style.display = "block";
@@ -731,7 +934,6 @@
             setTimeout(() => { btn.innerText = originalText; btn.style.background = "#007acc"; }, 2000);
         }
 
-        // --- MODALS ---
         function openSnippets() { 
             document.getElementById("overlay").style.display = "block"; 
             document.getElementById("templateModal").style.display = "block"; 
@@ -774,7 +976,6 @@
                 }
             });
 
-            // Dynamically evaluate section titles to suppress completely empty layout modules
             categories.forEach(cat => {
                 let nextGrid = cat.nextElementSibling;
                 if (nextGrid && nextGrid.classList.contains("manual-grid")) {
@@ -784,7 +985,6 @@
             });
         }
 
-        // --- ENGINE MANAGEMENT ARCHITECTURE ---
         function toggleSplitScreen() {
             isSplitScreenActive = !isSplitScreenActive;
             
@@ -867,15 +1067,11 @@
             }
         }
 
-        // --- MODERN MULTI-DEVICE IMPLEMENTATION ENGINE ---
-        function handlePresetChange(val) {
-            setPreviewDevice(val);
-        }
+        function handlePresetChange(val) { setPreviewDevice(val); }
 
         function setPreviewDevice(device) {
             currentDevice = device;
             deviceSelect.value = device;
-            
             deviceWrapper.className = "device-frame-wrapper";
             
             if (device === 'responsive') {
@@ -885,11 +1081,9 @@
                 if (device === 'iphone') {
                     deviceWrapper.classList.add("apple-notch");
                 }
-                
                 const metric = deviceMetrics[device];
                 let targetWidth = isLandscape ? metric.height : metric.width;
                 let targetHeight = isLandscape ? metric.width : metric.height;
-                
                 updatePreviewSize(targetWidth, targetHeight);
             }
         }
@@ -923,9 +1117,7 @@
             deviceWrapper.style.transform = `scale(${zoomScale})`;
         }
 
-        function toggleRuler() {
-            rulerOverlay.classList.toggle("active");
-        }
+        function toggleRuler() { rulerOverlay.classList.toggle("active"); }
 
         function toggleFullscreenPreview() {
             isFullscreenMode = !isFullscreenMode;
@@ -948,7 +1140,6 @@
             }
         }
         
-        // --- SNIPPETS EXTENSION ---
         const snippets = {
             html: `<!DOCTYPE html>\n<html>\n<head>\n<style>\n  body{ padding:20px; font-family:sans-serif; background:#f9f9f9; color:#333; }\n</style>\n</head>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>`,
             css: `* { margin:0; box-sizing:border-box; }`,
@@ -1002,7 +1193,6 @@
             reader.readAsText(file);
         }
         
-        // --- REAL-TIME PIPELINE LIVE UPDATES ---
         function updatePreviewLive() {
             const code = editor.value;
             const consoleScript = `<script>
@@ -1011,7 +1201,6 @@
                 console.log = function(...args) { originalLog.apply(console, args); window.parent.postMessage({type: 'log', msg: args.join(" ")}, '*'); };
             <\/script>`;
 
-            // 1. Split Screen Render Execution Flow Pipeline
             if (isSplitScreenActive) {
                 try {
                     const sDoc = splitFrame.contentWindow.document;
@@ -1022,7 +1211,6 @@
                 } catch(err) { console.error("Split Sync Error:", err); }
             }
 
-            // 2. Full Device Simulation Render Execution Flow Pipeline
             if (previewContainer.classList.contains("show")) {
                 try {
                     consoleArea.innerHTML = "";
@@ -1053,8 +1241,10 @@
             }
         }
 
-        // --- KEYBOARD CONFIG CONTROL MACROS ---
         document.addEventListener("keydown", (e) => {
+            // Do not process global shortcuts if auth overlay is active
+            if (!authOverlay.classList.contains('unlocked')) return;
+            
             if (e.key === "Escape") {
                 closeManualGuide();
                 closeAllModals();
