@@ -37,6 +37,10 @@
             overflow: hidden; 
         }
 
+        body.modal-open {
+            overflow: hidden;
+        }
+
         /* --- HEADER --- */
         header {
             background-color: var(--sidebar); 
@@ -67,6 +71,8 @@
         .btn-success { background-color: #2e7d32; border-color: #1b5e20; color: white; font-weight: bold; }
         .btn-success:hover { background-color: #1b5e20; }
         .btn-success.active { background-color: #1565c0; border-color: #0d47a1; }
+        .btn-info { background-color: #2b5b84; border-color: #1f4261; color: white; font-weight: bold; }
+        .btn-info:hover { background-color: #1f4261; }
         .btn-icon { width: 34px; padding: 0; font-size: 15px; flex-shrink: 0; }
 
         /* --- SEARCH BAR --- */
@@ -341,6 +347,49 @@
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5900; }
         #colorPickerInput { visibility: hidden; width: 0; height: 0; position: absolute; }
 
+        /* --- PREMIUM GLASSMORPHISM MANUAL MODAL --- */
+        .manual-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 12, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            z-index: 7000; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .manual-overlay.show { opacity: 1; display: block; }
+        
+        .manual-modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -45%) scale(0.9);
+            background: rgba(30, 30, 32, 0.85); border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6); width: 92%; max-width: 700px; max-height: 82vh;
+            z-index: 7100; border-radius: 16px; padding: 24px; color: #eee; display: none;
+            flex-direction: column; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease; opacity: 0;
+        }
+        .manual-overlay.show + .manual-modal { display: flex; transform: translate(-50%, -50%) scale(1); opacity: 1; }
+
+        .manual-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; }
+        .manual-title { font-size: 18px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .manual-close { background: transparent; border: none; color: #aaa; font-size: 20px; cursor: pointer; padding: 4px; transition: color 0.2s; }
+        .manual-close:hover { color: #f48771; }
+
+        .manual-search-box { position: relative; margin-bottom: 16px; }
+        .manual-search-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 10px 12px; color: #fff; font-size: 13px; }
+        .manual-search-input:focus { border-color: var(--accent); }
+
+        .manual-scroller { overflow-y: auto; padding-right: 6px; flex-grow: 1; }
+        .manual-scroller::-webkit-scrollbar { width: 6px; }
+        .manual-scroller::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+        .manual-category-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--accent); letter-spacing: 1px; margin: 18px 0 10px 0; }
+        .manual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media(max-width: 540px) { .manual-grid { grid-template-columns: 1fr; } }
+
+        .manual-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 12px 14px; border-radius: 8px; transition: all 0.2s ease; }
+        .manual-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); transform: translateY(-1px); }
+        .manual-card-head { font-weight: 600; color: #fff; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+        .manual-card-desc { font-size: 12.5px; color: #b5b5b5; line-height: 1.4; }
+
+        .quick-tips-panel { background: rgba(0, 122, 204, 0.08); border: 1px solid rgba(0, 122, 204, 0.2); border-radius: 8px; padding: 12px; margin-top: 16px; }
+        .quick-tips-title { font-weight: 700; font-size: 13px; color: #4fc1ff; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .quick-tips-list { margin: 0; padding-left: 18px; font-size: 12px; color: #ccc; line-height: 1.5; }
+
         /* Mobile Layout Adaptive Rules for Split Screen */
         @media (max-width: 768px) {
             .workspace { flex-direction: column; }
@@ -354,7 +403,8 @@
     <header>
         <div class="brand">A.S Code <span style="font-size:10px; color:var(--accent); vertical-align:super;">PRO</span></div>
         <div class="toolbar-group">
-            <!-- NEW MOBILE VERSION ACTION BUTTON ADDED TO THE LEFT OF CONTACT US -->
+            <!-- MANUAL / HELP CONFIG BUTTON TRIGGER -->
+            <button class="btn btn-info" onclick="openManualGuide()" title="Open Documentation Manual">📘 GUIDE</button>
             <button class="btn btn-icon" onclick="window.open('https://aryansharma1171.github.io/a.s-code-editor/index.html', '_blank')" title="Open Mobile Version">📱</button>
             <button class="btn btn-icon" onclick="contactUs()" title="Contact Us">📧</button>
             <button class="btn btn-icon" onclick="openSnippets()" title="Snippets">⚡</button>
@@ -460,6 +510,82 @@
 
             <!-- Standalone console window map target -->
             <div id="consoleArea"></div>
+        </div>
+    </div>
+
+    <!-- MODERN GLASSMORPHISM MANUAL POPUP STRUCTURE -->
+    <div class="manual-overlay" id="manualOverlay" onclick="closeManualGuide()"></div>
+    <div class="manual-modal" id="manualModal">
+        <div class="manual-header">
+            <div class="manual-title">📘 A.S Code Pro - User Manual</div>
+            <button class="manual-close" onclick="closeManualGuide()">✖</button>
+        </div>
+        
+        <div class="manual-search-box">
+            <input type="text" id="manualSearchInput" class="manual-search-input" placeholder="Search documentation or components..." oninput="filterManualTopics()">
+        </div>
+
+        <div class="manual-scroller">
+            <div class="manual-category-title">🖥️ Workspace Tools</div>
+            <div class="manual-grid">
+                <div class="manual-card" data-keywords="live split layout horizontal preview window coding text side">
+                    <div class="manual-card-head">⚡ Live Split</div>
+                    <div class="manual-card-desc">Divides your screen workspace, launching a responsive preview render panel inline without hiding code blocks.</div>
+                </div>
+                <div class="manual-card" data-keywords="snippets template base cards quick navigation buttons boilerplate">
+                    <div class="manual-card-head">⚡ Snippets Menu</div>
+                    <div class="manual-card-desc">Inserts production templates directly into editor like HTML5 resets, premium navbar frameworks, or script structures.</div>
+                </div>
+                <div class="manual-card" data-keywords="find text replace engine regex scan match text editor search">
+                    <div class="manual-card-head">🔍 Code Search</div>
+                    <div class="manual-card-desc">Launches text matcher overlay to sweep code indices and shift selection offsets to matching targets.</div>
+                </div>
+                <div class="manual-card" data-keywords="color picker background layout hex rgb code values styles injection hex palette">
+                    <div class="manual-card-head">🎨 Color Picker</div>
+                    <div class="manual-card-desc">Spawns full custom palette selector. Selecting color strings prints clean hexadecimal values directly inside the document.</div>
+                </div>
+            </div>
+
+            <div class="manual-category-title">📂 File & System Operations</div>
+            <div class="manual-grid">
+                <div class="manual-card" data-keywords="save project download script layout document export locally storage file html">
+                    <div class="manual-card-head">💾 Save Project</div>
+                    <div class="manual-card-desc">Bundles raw data inside clean data blobs and initializes local browser downloads named index.html instantly.</div>
+                </div>
+                <div class="manual-card" data-keywords="open folder filesystem parse structure layout workspace raw file input">
+                    <div class="manual-card-head">📂 Open File</div>
+                    <div class="manual-card-desc">Launches local file manager engine to parse external scripts directly into workspace layers.</div>
+                </div>
+                <div class="manual-card" data-keywords="undo trace revert back coding keystrokes buffer recovery timeline">
+                    <div class="manual-card-head">↩️ Undo Matrix</div>
+                    <div class="manual-card-desc">Triggers historical navigation commands, rolling state indices backward to restore accidental code alterations.</div>
+                </div>
+                <div class="manual-card" data-keywords="refresh frame initialization clear hard reload tab reset view runtime">
+                    <div class="manual-card-head">🔄 Hard Refresh</div>
+                    <div class="manual-card-desc">Reinitializes master scripts and styles, performing clean application cycles to clear system residue variables.</div>
+                </div>
+            </div>
+
+            <div class="manual-category-title">📱 Simulator & Multi-Device Engines</div>
+            <div class="manual-grid">
+                <div class="manual-card" data-keywords="full screen mobile simulated preset device environment wrappers logs apple console debug target">
+                    <div class="manual-card-head">📱 Full Screen Preview</div>
+                    <div class="manual-card-desc">Launches advanced multi-device wrapper frame context with interactive phone chassis vectors and error tracing console systems.</div>
+                </div>
+                <div class="manual-card" data-keywords="ruler grids metrics layout pixels scale design responsive element check width alignment">
+                    <div class="manual-card-head">📏 Pixel Ruler</div>
+                    <div class="manual-card-desc">Injects translucent cross-alignment background grid lines matching perfect CSS layout metrics during mock design evaluations.</div>
+                </div>
+            </div>
+
+            <div class="quick-tips-panel">
+                <div class="quick-tips-title">💡 Developer Productivity Shortcuts</div>
+                <ul class="quick-tips-list">
+                    <li><strong>Ctrl + S / Cmd + S</strong> — Executes code state caching and launches local storage backup routines.</li>
+                    <li><strong>Ctrl + L / Cmd + L</strong> — Automatically registers or cuts active real-time tracking engines instantly.</li>
+                    <li><strong>Tab Key</strong> — Standardizes structural format tracking by printing standardized 4-space code indents.</li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -614,6 +740,48 @@
             document.getElementById("overlay").style.display = "none";
             document.getElementById("templateModal").style.display = "none";
             document.getElementById("contactModal").style.display = "none";
+        }
+
+        // --- HIGH-PERFORMANCE MANUAL POPUP LOGIC ---
+        function openManualGuide() {
+            document.body.classList.add("modal-open");
+            const overlay = document.getElementById("manualOverlay");
+            overlay.classList.add("show");
+            document.getElementById("manualSearchInput").value = "";
+            filterManualTopics();
+        }
+
+        function closeManualGuide() {
+            document.body.classList.remove("modal-open");
+            const overlay = document.getElementById("manualOverlay");
+            if (overlay) overlay.classList.remove("show");
+        }
+
+        function filterManualTopics() {
+            const query = document.getElementById("manualSearchInput").value.toLowerCase().trim();
+            const cards = document.querySelectorAll(".manual-card");
+            const categories = document.querySelectorAll(".manual-category-title");
+
+            cards.forEach(card => {
+                const head = card.querySelector(".manual-card-head").textContent.toLowerCase();
+                const desc = card.querySelector(".manual-card-desc").textContent.toLowerCase();
+                const keywords = card.getAttribute("data-keywords").toLowerCase();
+
+                if (head.includes(query) || desc.includes(query) || keywords.includes(query)) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+
+            // Dynamically evaluate section titles to suppress completely empty layout modules
+            categories.forEach(cat => {
+                let nextGrid = cat.nextElementSibling;
+                if (nextGrid && nextGrid.classList.contains("manual-grid")) {
+                    const visibleCards = nextGrid.querySelectorAll('.manual-card[style="display: block;"]');
+                    cat.style.display = visibleCards.length > 0 ? "block" : "none";
+                }
+            });
         }
 
         // --- ENGINE MANAGEMENT ARCHITECTURE ---
@@ -887,6 +1055,10 @@
 
         // --- KEYBOARD CONFIG CONTROL MACROS ---
         document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                closeManualGuide();
+                closeAllModals();
+            }
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
                 e.preventDefault();
                 saveFile(); 
