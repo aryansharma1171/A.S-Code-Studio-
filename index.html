@@ -2,149 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#1e1e1e">
-    <title>A.S Code - Pro IDE</title>
+    <title>A.S Code Pro - IDE</title>
     
-    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --bg: #1e1e1e;
             --sidebar: #252526;
+            --activity-bar: #333333;
             --accent: #007acc;
-            --accent-hover: #0062a3;
+            --accent-hover: #005f9e;
             --text: #cccccc;
-            --border: #333;
+            --border: #3c3c3c;
             --console-bg: #111;
-            --error: #f48771;
+            
+            /* Notification Colors */
+            --notify-success: #89d185;
+            --notify-error: #f48771;
+            --notify-warning: #cca700;
+            --notify-info: #4fc1ff;
+
             --toolbar-height: 46px;
+            --status-height: 24px;
         }
 
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 
         body, html {
-            background-color: var(--bg); 
-            color: var(--text);
-            height: 100dvh; 
-            width: 100%;
-            margin: 0; 
-            padding: 0;
-            display: flex; 
-            flex-direction: column;
-            font-family: 'Segoe UI', sans-serif; 
-            overflow: hidden; 
+            background-color: var(--bg); color: var(--text);
+            height: 100dvh; width: 100%; margin: 0; padding: 0;
+            display: flex; flex-direction: column;
+            font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; 
         }
 
-        body.modal-open { overflow: hidden; }
-
-        /* --- AUTHENTICATION LOCK SCREEN (NEW) --- */
-        #authOverlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(15, 15, 17, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            z-index: 99999; display: flex; align-items: center; justify-content: center;
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
-        }
-        #authOverlay.unlocked { opacity: 0; visibility: hidden; pointer-events: none; }
-
-        .auth-card {
-            background: rgba(30, 30, 32, 0.7); border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255,255,255,0.1);
-            width: 90%; max-width: 420px; border-radius: 20px; padding: 40px 30px;
-            display: flex; flex-direction: column; align-items: center; text-align: center;
-            position: relative; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        
-        .auth-icon-wrapper {
-            width: 64px; height: 64px; background: rgba(0, 122, 204, 0.15); border: 1px solid rgba(0, 122, 204, 0.3);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
-            color: #4fc1ff; box-shadow: 0 0 30px rgba(0, 122, 204, 0.2); transition: all 0.5s ease;
-        }
-        .auth-icon-wrapper svg { width: 32px; height: 32px; fill: currentColor; transition: transform 0.5s ease; }
-        
-        .auth-title { color: #fff; font-size: 22px; font-weight: 700; margin: 0 0 8px 0; letter-spacing: 0.5px; }
-        .auth-subtitle { color: #999; font-size: 14px; margin: 0 0 30px 0; }
-
-        .auth-input-group { width: 100%; position: relative; margin-bottom: 20px; }
-        .auth-input {
-            width: 100%; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #fff; font-size: 16px; padding: 14px 45px 14px 16px; border-radius: 10px;
-            font-family: 'Fira Code', monospace; transition: all 0.3s ease; letter-spacing: 2px;
-        }
-        .auth-input:focus { border-color: var(--accent); background: rgba(0, 0, 0, 0.6); box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.2); }
-        .auth-input::placeholder { color: #555; letter-spacing: normal; font-family: 'Segoe UI', sans-serif; }
-        
-        .auth-eye-btn {
-            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-            background: none; border: none; color: #888; cursor: pointer; font-size: 18px; padding: 4px;
-            transition: color 0.2s;
-        }
-        .auth-eye-btn:hover { color: #fff; }
-
-        .caps-warning {
-            position: absolute; top: -25px; right: 0; background: #ff9800; color: #fff; font-size: 11px;
-            padding: 4px 8px; border-radius: 4px; font-weight: bold; display: none;
-            box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3); animation: fadeIn 0.2s ease;
-        }
-
-        .auth-error {
-            color: #ff5252; background: rgba(255, 82, 82, 0.1); border: 1px solid rgba(255, 82, 82, 0.3);
-            width: 100%; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 500;
-            margin-bottom: 20px; display: none; animation: fadeIn 0.3s ease;
-        }
-
-        .auth-btn {
-            width: 100%; background: linear-gradient(135deg, var(--accent), #005f9e); color: white;
-            border: none; padding: 14px; font-size: 15px; font-weight: bold; border-radius: 10px; cursor: pointer;
-            transition: transform 0.1s, box-shadow 0.2s; box-shadow: 0 8px 20px rgba(0, 122, 204, 0.3);
-        }
-        .auth-btn:hover { box-shadow: 0 10px 25px rgba(0, 122, 204, 0.5); }
-        .auth-btn:active { transform: scale(0.97); }
-
-        .auth-contact-box {
-            margin-top: 25px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.08);
-            width: 100%; font-size: 12px; color: #777; line-height: 1.6;
-        }
-        .auth-contact-box a { color: #4fc1ff; text-decoration: none; font-weight: 500; transition: color 0.2s; }
-        .auth-contact-box a:hover { color: #fff; text-decoration: underline; }
-        
-        .auth-footer-text { margin-top: 20px; font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-
-        /* Auth Animations */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-12px); }
-            40% { transform: translateX(12px); }
-            60% { transform: translateX(-8px); }
-            80% { transform: translateX(8px); }
-        }
-        .shake-anim { animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
-        
-        .loading-dots::after { content: ''; animation: dots 1.5s steps(4, end) infinite; }
-        @keyframes dots { 0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%, 100% { content: '...'; } }
-
-        /* --- HEADER --- */
+        /* --- HEADER & TOOLBAR --- */
         header {
-            background-color: var(--sidebar); 
-            height: 50px;
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between;
-            padding: 0 10px; 
-            border-bottom: 1px solid var(--border); 
-            flex-shrink: 0; 
-            z-index: 20;
+            height: var(--toolbar-height); background: var(--sidebar); display: flex;
+            align-items: center; justify-content: space-between; padding: 0 10px;
+            border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 20;
         }
-
-        .brand { font-weight: 700; color: #fff; font-size: 16px; letter-spacing: 0.5px; }
-        .toolbar-group { display: flex; gap: 5px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+        .brand-section { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .toolbar-group {
+            display: flex; gap: 5px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; flex-grow: 1; justify-content: flex-end;
+        }
         .toolbar-group::-webkit-scrollbar { display: none; }
 
         .btn {
             background: #333; color: #eee; border: 1px solid #444;
-            height: 34px; padding: 0 10px; font-size: 13px; cursor: pointer;
+            height: 30px; padding: 0 10px; font-size: 13px; cursor: pointer;
             border-radius: 4px; display: flex; align-items: center; justify-content: center;
             gap: 4px; transition: background 0.2s, transform 0.1s; white-space: nowrap;
         }
@@ -152,386 +60,225 @@
         .btn:hover { background: #444; }
         .btn-primary { background-color: var(--accent); border-color: #005f9e; color: white; font-weight: bold; }
         .btn-primary:hover { background-color: var(--accent-hover); }
-        .btn-success { background-color: #2e7d32; border-color: #1b5e20; color: white; font-weight: bold; }
-        .btn-success:hover { background-color: #1b5e20; }
-        .btn-success.active { background-color: #1565c0; border-color: #0d47a1; }
-        .btn-info { background-color: #2b5b84; border-color: #1f4261; color: white; font-weight: bold; }
-        .btn-info:hover { background-color: #1f4261; }
+        .btn-success { background-color: #2e7d32; border-color: #1b5e20; color: white; }
+        .btn-info { background-color: #2b5b84; border-color: #1f4261; color: white; }
         .btn-icon { width: 34px; padding: 0; font-size: 15px; flex-shrink: 0; }
 
         /* --- SEARCH BAR --- */
         #searchBar {
             display: none; background: #2d2d2d; padding: 8px;
             border-bottom: 1px solid var(--border); justify-content: center; gap: 5px;
-            flex-shrink: 0;
+            flex-shrink: 0; z-index: 15;
         }
-        #searchInput { background: #1e1e1e; border: 1px solid #444; color: white; padding: 5px; border-radius: 3px; width: 60%; }
+        #searchInput { background: #1e1e1e; border: 1px solid #444; color: white; padding: 5px; border-radius: 3px; width: 50%; }
 
-        /* --- WORKSPACE --- */
-        .workspace { 
-            display: flex; 
-            flex-grow: 1; 
-            position: relative; 
-            height: 100%; 
-            min-height: 0; 
-            overflow: hidden; 
-        }
-
-        .editor-container {
-            display: flex;
-            flex-grow: 1;
-            width: 100%;
-            height: 100%;
+        /* --- APP LAYOUT --- */
+        .app-container {
+            display: flex; flex-grow: 1; height: calc(100% - var(--toolbar-height) - var(--status-height));
             overflow: hidden;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* --- SIDEBAR EXPLORER --- */
+        .sidebar {
+            width: 220px; background: var(--sidebar); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; transition: width 0.3s ease; flex-shrink: 0;
+        }
+        .sidebar.collapsed { width: 0; border: none; overflow: hidden; }
+        .sidebar-header {
+            padding: 10px; font-size: 11px; font-weight: bold; text-transform: uppercase;
+            color: #888; display: flex; justify-content: space-between; align-items: center;
+        }
+        .file-list { flex-grow: 1; overflow-y: auto; padding: 0 5px; }
+        
+        .file-item {
+            padding: 4px 10px; cursor: pointer; border-radius: 4px; font-size: 13px;
+            display: flex; align-items: center; justify-content: space-between; color: #ccc;
+            height: 32px;
+        }
+        .file-item:hover { background: rgba(255,255,255,0.05); }
+        .file-item.active { background: rgba(0, 122, 204, 0.2); color: #fff; }
+        
+        .file-name { display: flex; align-items: center; gap: 8px; flex-grow: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        
+        .file-del-btn {
+            background: transparent; border: none; color: #888; font-size: 16px;
+            cursor: pointer; padding: 0 6px; border-radius: 4px; display: none; line-height: 1;
+        }
+        .file-item:hover .file-del-btn { display: block; } 
+        .file-del-btn:hover { background: rgba(244, 135, 113, 0.2); color: var(--notify-error); }
+
+        /* --- EDITOR AREA --- */
+        .editor-wrapper {
+            flex-grow: 1; display: flex; flex-direction: column; position: relative;
+            background: var(--bg); min-width: 0;
+        }
+        .tabs-bar {
+            height: 35px; background: #2d2d2d; display: flex; align-items: center;
+            overflow-x: auto; border-bottom: 1px solid var(--border); flex-shrink: 0;
+        }
+        .tab {
+            padding: 0 15px; height: 100%; display: flex; align-items: center;
+            background: var(--sidebar); color: #888; cursor: pointer; border-right: 1px solid var(--border);
+            font-size: 13px; min-width: 120px; border-top: 2px solid transparent;
+        }
+        .tab.active { background: var(--bg); color: #fff; border-top-color: var(--accent); }
+
+        .code-container { display: flex; flex-grow: 1; position: relative; overflow: hidden; }
         .gutter {
-            width: 45px; 
-            background: var(--bg); 
-            color: #6e7681;
-            text-align: right; 
-            padding: 10px 8px; 
-            font-family: 'Fira Code', monospace;
-            font-size: 13px; 
-            line-height: 1.5; 
-            border-right: 1px solid var(--border);
-            overflow: hidden;
-            flex-shrink: 0;
-            user-select: none;
+            width: 45px; background: var(--bg); color: #6e7681; text-align: right;
+            padding: 10px 8px; font-family: 'Fira Code', monospace; font-size: 13px;
+            line-height: 1.5; border-right: 1px solid var(--border); user-select: none;
+            overflow: hidden; flex-shrink: 0; z-index: 2;
         }
 
+        .editor-core { position: relative; flex-grow: 1; height: 100%; overflow: hidden; }
+        #highlighting {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            margin: 0; padding: 10px; font-family: 'Fira Code', monospace;
+            font-size: 13px; line-height: 1.5; white-space: pre; color: #d4d4d4;
+            overflow: hidden; z-index: 1; pointer-events: none;
+        }
         #editor {
-            flex-grow: 1; 
-            background: var(--bg); 
-            color: #d4d4d4;
-            border: none; 
-            padding: 10px; 
-            font-family: 'Fira Code', monospace;
-            font-size: 13px; 
-            line-height: 1.5; 
-            resize: none; 
-            white-space: pre;
-            overflow: auto; 
-            width: calc(100% - 45px);
-            height: 100%;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent; color: transparent; caret-color: #fff;
+            border: none; padding: 10px; font-family: 'Fira Code', monospace;
+            font-size: 13px; line-height: 1.5; resize: none; white-space: pre;
+            overflow: auto; z-index: 2; outline: none;
         }
-
-        /* --- SPLIT INLINE PREVIEW PANEL --- */
-        .split-preview-panel {
-            display: none;
-            width: 50%;
-            height: 100%;
-            background: #fff;
-            border-left: 2px solid var(--border);
-            flex-direction: column;
-            position: relative;
-            animation: slideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-        #splitFrame {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #fff;
-        }
-        .split-indicator-bar {
-            background: var(--sidebar);
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 10px;
-            font-size: 11px;
-            color: #aaa;
-            border-bottom: 1px solid var(--border);
-            font-family: monospace;
-        }
+        .syn-keyword { color: #569cd6; }
+        .syn-string { color: #ce9178; }
+        .syn-tag { color: #569cd6; }
+        .syn-comment { color: #6a9955; font-style: italic; }
 
         /* --- HELPER BAR --- */
         .helper-bar {
-            background: var(--sidebar); 
-            padding: 8px 5px; 
-            display: flex; 
-            gap: 6px;
-            overflow-x: auto; 
-            border-top: 1px solid var(--border); 
-            flex-shrink: 0; 
-            z-index: 20;
-            width: 100%;
-            padding-bottom: max(8px, env(safe-area-inset-bottom));
+            background: var(--sidebar); padding: 8px 5px; display: flex; gap: 6px;
+            overflow-x: auto; border-top: 1px solid var(--border); flex-shrink: 0; z-index: 20;
         }
-        
         .helper-btn {
-            background: #3e3e42; color: #fff; border: none; min-width: 42px; height: 38px;
-            border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 15px;
-            cursor: pointer; flex-shrink: 0;
+            background: #3e3e42; color: #fff; border: none; min-width: 40px; height: 34px;
+            border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 14px;
+            cursor: pointer; flex-shrink: 0; transition: background 0.2s;
         }
         .helper-btn:active { background: var(--accent); }
 
-        /* --- MODERN MULTI-DEVICE PREVIEW CONTAINER --- */
-        #previewContainer {
-            display: none; 
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: #111112;
-            flex-direction: column;
-            z-index: 5000;
-            opacity: 0;
-            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        /* --- PREVIEW PANEL --- */
+        .preview-panel {
+            width: 45%; background: #fff; border-left: 2px solid var(--border);
+            display: none; flex-direction: column; position: relative;
         }
-        #previewContainer.show { opacity: 1; display: flex; }
+        .preview-panel.active { display: flex; }
+        .preview-header {
+            background: var(--sidebar); padding: 5px 10px; color: #aaa; font-size: 11px;
+            border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;
+        }
+        #liveFrame { flex-grow: 1; border: none; width: 100%; background: #fff; }
 
-        /* Preview Navigation Tabs */
-        .preview-tabs {
-            background: var(--sidebar); display: flex; border-bottom: 1px solid var(--border); height: 45px; align-items: center; padding: 0 10px;
-        }
-        .tab-btn {
-            padding: 0 15px; height: 100%; border: none; background: transparent; 
-            font-weight: 600; cursor: pointer; color: #888; border-bottom: 3px solid transparent;
-            font-size: 13px; transition: color 0.2s, border-color 0.2s;
-        }
-        .tab-btn.active { color: #fff; border-bottom-color: var(--accent); }
-        .close-btn { 
-            margin-left: auto; background: #e51400; color: white; 
-            padding: 0 16px; height: 32px; cursor: pointer; border: none; font-weight: bold;
-            border-radius: 4px; font-size: 12px; display: flex; align-items: center; gap: 4px;
-        }
-        .close-btn:hover { background: #ff1a00; }
-
-        /* Device Manipulation Toolbar */
-        .device-toolbar {
-            background: #2d2d2d;
-            height: var(--toolbar-height);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 10px;
-            gap: 8px;
-            overflow-x: auto;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .device-toolbar::-webkit-scrollbar { display: none; }
-        
-        .toolbar-select-wrapper { display: flex; align-items: center; background: #202020; border: 1px solid #444; border-radius: 4px; padding: 0 6px; }
-        .toolbar-select-wrapper select {
-            background: transparent; color: #eee; border: none; height: 28px; font-size: 12px; cursor: pointer; padding-right: 4px;
+        /* --- STATUS BAR --- */
+        .status-bar {
+            height: var(--status-height); background: var(--accent); color: white;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 10px; font-size: 11px; flex-shrink: 0;
         }
 
-        .dev-btn {
-            background: #202020; color: #aaa; border: 1px solid #444;
-            height: 28px; padding: 0 10px; font-size: 12px; cursor: pointer;
-            border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;
-            transition: all 0.2s;
-        }
-        .dev-btn:hover { background: #3a3a3a; color: #fff; }
-        .dev-btn.active { background: var(--accent); color: white; border-color: #005f9e; }
-        .dev-btn-group { display: flex; background: #202020; border-radius: 4px; border: 1px solid #444; padding: 2px; }
-        .dev-btn-group .dev-btn { border: none; height: 24px; border-radius: 2px; }
-
-        .hud-label {
-            color: #888; font-family: 'Fira Code', monospace; font-size: 11px; margin-left: auto;
-            background: #1a1a1a; padding: 4px 8px; border-radius: 4px; border: 1px solid #3c3c3c;
-        }
-
-        /* Canvas Window Setup */
-        .preview-viewport-area {
-            flex-grow: 1;
-            position: relative;
-            overflow: auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            background: radial-gradient(circle, #222225 10%, #111112 90%);
-        }
-
-        /* Pixel Ruler Cross-Overlay */
-        .ruler-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; opacity: 0.15; display: none;
-            background-image: linear-gradient(to right, #888 1px, transparent 1px), linear-gradient(to bottom, #888 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
-        .ruler-overlay.active { display: block; }
-
-        /* The simulated adaptive device window frame structure */
-        .device-frame-wrapper {
-            position: relative;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: center center;
-            box-shadow: 0 25px 65px rgba(0,0,0,0.7);
-            background: #000;
-            border: 0px solid #2d2d2d;
-            border-radius: 0px;
-            display: flex;
-            flex-direction: column;
-            max-width: 100%;
-        }
-
-        /* Simulated Mobile Hardware Framing Attributes */
-        .device-frame-wrapper.phone-chassis {
-            border: 12px solid #2d2d30;
-            border-radius: 36px;
-            padding: 0;
-        }
-        .device-frame-wrapper.phone-chassis::before {
-            content: ''; position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
-            width: 120px; height: 16px; background: #2d2d30; border-bottom-left-radius: 12px;
-            border-bottom-right-radius: 12px; z-index: 5001; display: none;
-        }
-        .device-frame-wrapper.phone-chassis.apple-notch::before { display: block; }
-
-        .device-status-bar {
-            height: 24px; background: #000; font-size: 11px; color: #fff;
-            display: none; align-items: center; justify-content: space-between; padding: 0 24px;
-            font-family: inherit; font-weight: 500; select: none;
-        }
-        .device-frame-wrapper.phone-chassis .device-status-bar { display: flex; }
-
-        /* The Frame Box Content Viewport */
-        .iframe-container {
-            width: 100%; height: 100%; position: relative; flex-grow: 1; overflow: hidden;
-            background: #fff; border-radius: inherit;
-        }
-
-        #outputFrame { border: none; width: 100%; height: 100%; background: white; display: block; }
-        
-        .frame-loader-shield {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(30,30,30,0.8); display: flex; align-items: center;
-            justify-content: center; z-index: 100; opacity: 0; pointer-events: none;
-            transition: opacity 0.15s ease; color: white; font-size: 13px; font-weight: 500;
-        }
-        .frame-loader-shield.loading { opacity: 1; pointer-events: auto; }
-
-        #consoleArea {
-            display: none; flex-grow: 1; background: var(--console-bg); 
-            color: #ddd; padding: 15px; font-family: 'Fira Code', monospace; 
-            font-size: 13px; overflow-y: auto;
-        }
-        .log-msg { padding: 6px 0; border-bottom: 1px solid #222; line-height: 1.4; }
-        .log-error { color: var(--error); background: rgba(244,135,113,0.05); }
-        .log-info { color: #4fc1ff; }
-
-        /* --- MODALS --- */
+        /* --- MODALS & OVERLAYS --- */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5900; }
         .modal {
-            display: none; position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); background: #252526;
-            border: 1px solid #454545; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #252526; border: 1px solid #454545; box-shadow: 0 20px 50px rgba(0,0,0,0.9);
             width: 90%; max-width: 400px; z-index: 6000; border-radius: 8px; padding: 20px;
         }
+
         .snippet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .snippet-btn { background: #333; color: #ccc; border: 1px solid #444; padding: 10px; border-radius: 4px; cursor: pointer; text-align: left; }
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5900; }
-        #colorPickerInput { visibility: hidden; width: 0; height: 0; position: absolute; }
+        .snippet-btn { background: #333; color: #ccc; border: 1px solid #444; padding: 10px; border-radius: 4px; cursor: pointer; text-align: left; transition: background 0.2s; }
+        .snippet-btn:hover { background: #444; }
 
-        /* --- PREMIUM GLASSMORPHISM MANUAL MODAL --- */
-        .manual-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 10, 12, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            z-index: 7000; opacity: 0; transition: opacity 0.3s ease;
+        /* --- NOTIFICATION SYSTEM --- */
+        #notificationContainer {
+            position: fixed;
+            top: 20px; right: 20px;
+            display: flex; flex-direction: column; gap: 10px;
+            z-index: 999999; pointer-events: none;
         }
-        .manual-overlay.show { opacity: 1; display: block; }
-        
-        .manual-modal {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -45%) scale(0.9);
-            background: rgba(30, 30, 32, 0.85); border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6); width: 92%; max-width: 700px; max-height: 82vh;
-            z-index: 7100; border-radius: 16px; padding: 24px; color: #eee; display: none;
-            flex-direction: column; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease; opacity: 0;
+
+        .app-notification {
+            background: rgba(30, 30, 32, 0.7);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff; padding: 12px 16px; border-radius: 8px; font-size: 13px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: space-between; gap: 15px;
+            pointer-events: auto;
+            min-width: 280px; max-width: 380px;
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .manual-overlay.show + .manual-modal { display: flex; transform: translate(-50%, -50%) scale(1); opacity: 1; }
 
-        .manual-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; }
-        .manual-title { font-size: 18px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
-        .manual-close { background: transparent; border: none; color: #aaa; font-size: 20px; cursor: pointer; padding: 4px; transition: color 0.2s; }
-        .manual-close:hover { color: #f48771; }
+        .app-notification.fade-out { animation: fadeOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        .notify-msg { flex-grow: 1; line-height: 1.4; }
+        .notify-close {
+            background: transparent; border: none; color: #999; font-size: 20px;
+            cursor: pointer; padding: 0 4px; display: flex; align-items: center; justify-content: center;
+            transition: color 0.2s;
+        }
+        .notify-close:hover { color: #fff; }
 
-        .manual-search-box { position: relative; margin-bottom: 16px; }
-        .manual-search-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 10px 12px; color: #fff; font-size: 13px; }
-        .manual-search-input:focus { border-color: var(--accent); }
+        /* --- FULLSCREEN PREVIEW OVERLAY --- */
+        .fs-preview-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #1e1e1e; z-index: 90000;
+        }
+        .fs-preview-header {
+            height: 40px; background: var(--sidebar); display: flex;
+            justify-content: space-between; align-items: center; padding: 0 15px;
+            border-bottom: 1px solid var(--border);
+        }
 
-        .manual-scroller { overflow-y: auto; padding-right: 6px; flex-grow: 1; }
-        .manual-scroller::-webkit-scrollbar { width: 6px; }
-        .manual-scroller::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
-
-        .manual-category-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--accent); letter-spacing: 1px; margin: 18px 0 10px 0; }
-        .manual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        @media(max-width: 540px) { .manual-grid { grid-template-columns: 1fr; } }
-
-        .manual-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 12px 14px; border-radius: 8px; transition: all 0.2s ease; }
-        .manual-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); transform: translateY(-1px); }
-        .manual-card-head { font-weight: 600; color: #fff; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-        .manual-card-desc { font-size: 12.5px; color: #b5b5b5; line-height: 1.4; }
-
-        .quick-tips-panel { background: rgba(0, 122, 204, 0.08); border: 1px solid rgba(0, 122, 204, 0.2); border-radius: 8px; padding: 12px; margin-top: 16px; }
-        .quick-tips-title { font-weight: 700; font-size: 13px; color: #4fc1ff; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-        .quick-tips-list { margin: 0; padding-left: 18px; font-size: 12px; color: #ccc; line-height: 1.5; }
-
-        /* Mobile Layout Adaptive Rules for Split Screen */
         @media (max-width: 768px) {
-            .workspace { flex-direction: column; }
-            .editor-container { width: 100% !important; height: 50% !important; }
-            .split-preview-panel { width: 100% !important; height: 50% !important; border-left: none; border-top: 2px solid var(--border); }
+            .app-container { flex-direction: column; }
+            .sidebar { width: 100%; height: 25%; border-right: none; border-bottom: 1px solid var(--border); }
+            .sidebar.collapsed { height: 0; }
+            .preview-panel { width: 100%; height: 40%; border-left: none; border-top: 2px solid var(--border); }
+            .brand-section { width: auto; }
+            
+            /* Show delete icon permanently on mobile since there is no hover */
+            .file-del-btn { display: block; }
+            
+            /* Responsive Notifications */
+            #notificationContainer {
+                top: auto; bottom: 20px; left: 50%; transform: translateX(-50%); right: auto;
+                flex-direction: column-reverse;
+                width: 90%; max-width: 400px;
+            }
+            .app-notification { width: 100%; min-width: unset; max-width: unset; animation: slideInBottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+            .app-notification.fade-out { animation: fadeOutBottom 0.3s forwards; }
         }
+
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
+        @keyframes slideInBottom { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeOutBottom { from { transform: translateY(0); opacity: 1; } to { transform: translateY(120%); opacity: 0; } }
     </style>
 </head>
 <body>
 
-    <div id="authOverlay">
-        <div class="auth-card" id="authCard">
-            <div class="auth-icon-wrapper" id="authIconWrap">
-                <svg id="lockIcon" viewBox="0 0 24 24">
-                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
-                </svg>
-                <svg id="unlockIcon" style="display:none;" viewBox="0 0 24 24">
-                    <path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h2c0-1.66 1.34-3 3-3s3 1.34 3 3v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/>
-                </svg>
-            </div>
-            
-            <h2 class="auth-title">Restricted Access</h2>
-            <p class="auth-subtitle">Please enter your password to continue.</p>
-            
-            <div class="auth-error" id="authError">Incorrect Password</div>
-
-            <div class="auth-input-group">
-                <input type="password" id="authPassword" class="auth-input" placeholder="Password" autocomplete="off">
-                <button class="auth-eye-btn" id="authEyeBtn" title="Show Password">👁️</button>
-                <div class="caps-warning" id="capsWarning">CAPS LOCK IS ON</div>
-            </div>
-            
-            <button class="auth-btn" id="authBtn">Unlock Website</button>
-            
-            <div class="auth-contact-box">
-                To get password please contact:<br>
-                <a href="mailto:aryansharma98g@gmail.com">aryansharma98g@gmail.com</a><br>
-                or <a href="mailto:etho98g@gmail.com">etho98g@gmail.com</a>
-            </div>
-            
-            <div class="auth-footer-text">Protected Access System</div>
-        </div>
-    </div>
-
     <header>
-        <div class="brand">A.S Code <span style="font-size:10px; color:var(--accent); vertical-align:super;">PRO</span></div>
+        <div class="brand-section">
+            <button class="btn btn-icon" onclick="toggleSidebar()" title="Toggle Explorer" style="background:transparent; border:none;">📁</button>
+            <span style="font-weight:700; color:#fff; font-size:14px; letter-spacing:0.5px;">A.S Code <span style="font-size:10px; color:var(--accent); vertical-align:super;">PRO</span></span>
+        </div>
+        
         <div class="toolbar-group">
-            <button class="btn btn-info" onclick="openManualGuide()" title="Open Documentation Manual">📘 GUIDE</button>
+            <button class="btn btn-info" onclick="showNotification('Documentation is loaded inline.', 'info')" title="Open Documentation Manual">📘 GUIDE</button>
             <button class="btn btn-icon" onclick="window.open('https://aryansharma1171.github.io/a.s-code-editor/index.html', '_blank')" title="Open Mobile Version">📱</button>
-            <button class="btn btn-icon" onclick="contactUs()" title="Contact Us">📧</button>
+            <button class="btn btn-icon" onclick="openContact()" title="Contact Us">📧</button>
             <button class="btn btn-icon" onclick="openSnippets()" title="Snippets">⚡</button>
             <button class="btn btn-icon" onclick="document.execCommand('undo')" title="Undo">↩️</button>
             <button class="btn btn-icon" onclick="toggleSearch()" title="Search">🔍</button>
             <button class="btn btn-icon" onclick="document.getElementById('colorPickerInput').click()" title="Color Picker">🎨</button>
             <button class="btn btn-icon" onclick="location.reload()" title="Refresh Page">🔄</button>
             
-            <button class="btn btn-success" id="splitToggleBtn" onclick="toggleSplitScreen()">⚡ LIVE SPLIT</button>
-            <button class="btn btn-primary" onclick="toggleRun()">📱 FULL SCREEN</button>
+            <button class="btn btn-primary" onclick="openFullscreenPreview()" title="Watch Result in Fullscreen">📺 FULL SCREEN</button>
+            <button class="btn btn-success" id="splitToggleBtn" onclick="togglePreview()">⚡ LIVE SPLIT</button>
             
             <button class="btn btn-icon" onclick="saveFile()" title="Save">💾</button>
             <button class="btn btn-icon" onclick="document.getElementById('fileInput').click()" title="Open">📂</button>
@@ -539,170 +286,92 @@
     </header>
 
     <div id="searchBar">
-        <input type="text" id="searchInput" placeholder="Find text...">
+        <input type="text" id="searchInput" placeholder="Find text in active file...">
         <button class="btn" onclick="findText()">Find</button>
         <button class="btn" onclick="toggleSearch()">✖</button>
     </div>
 
-    <div class="workspace" id="workspace">
-        <div class="editor-container" id="editorContainer">
-            <div class="gutter" id="gutter">1</div>
-            <textarea id="editor" spellcheck="false" placeholder="<h1>Start Coding...</h1>"></textarea>
+    <div class="app-container">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span>Explorer</span>
+                <button class="btn" style="padding:2px 6px; height:24px;" onclick="createNewFile()">+</button>
+            </div>
+            <div class="file-list" id="fileList"></div>
         </div>
-        
-        <div class="split-preview-panel" id="splitPreviewPanel">
-            <div class="split-indicator-bar">
+
+        <div class="editor-wrapper">
+            <div class="tabs-bar">
+                <div class="tab active" id="currentTab">index.html</div>
+            </div>
+            <div class="code-container">
+                <div class="gutter" id="gutter">1</div>
+                <div class="editor-core">
+                    <pre><code id="highlighting"></code></pre>
+                    <textarea id="editor" spellcheck="false"></textarea>
+                </div>
+            </div>
+            <div class="helper-bar">
+                <button class="helper-btn" onclick="insertText('<')">&lt;</button>
+                <button class="helper-btn" onclick="insertText('>')">&gt;</button>
+                <button class="helper-btn" onclick="insertText('/')">/</button>
+                <button class="helper-btn" onclick="insertText('=')">=</button>
+                <button class="helper-btn" onclick="insertText('\"')">"</button>
+                <button class="helper-btn" onclick="insertText(';')">;</button>
+                <button class="helper-btn" onclick="insertText('{')">{</button>
+                <button class="helper-btn" onclick="insertText('}')">}</button>
+                <button class="helper-btn" onclick="insertText('class=')">cls</button>
+                <button class="helper-btn" onclick="insertText('id=')">id</button>
+                <button class="helper-btn" onclick="insertText('!')">!</button>
+                <button class="helper-btn" onclick="insertText('px')">px</button>
+            </div>
+        </div>
+
+        <div class="preview-panel" id="previewPanel">
+            <div class="preview-header">
                 <span>🔴 Live Sync Active</span>
-                <span id="splitStatusDot" style="width:8px; height:8px; border-radius:50%; background:#4caf50;"></span>
+                <span style="width:8px; height:8px; border-radius:50%; background:#4caf50;"></span>
             </div>
-            <iframe id="splitFrame"></iframe>
+            <iframe id="liveFrame" sandbox="allow-scripts allow-modals"></iframe>
         </div>
     </div>
 
-    <div class="helper-bar">
-        <button class="helper-btn" onclick="insert('<')">&lt;</button>
-        <button class="helper-btn" onclick="insert('>')">&gt;</button>
-        <button class="helper-btn" onclick="insert('/')">/</button>
-        <button class="helper-btn" onclick="insert('=')">=</button>
-        <button class="helper-btn" onclick="insert('\"')">"</button>
-        <button class="helper-btn" onclick="insert(';')">;</button>
-        <button class="helper-btn" onclick="insert('{')">{</button>
-        <button class="helper-btn" onclick="insert('}')">}</button>
-        <button class="helper-btn" onclick="insert('class=')">cls</button>
-        <button class="helper-btn" onclick="insert('id=')">id</button>
-        <button class="helper-btn" onclick="insert('!')">!</button>
-        <button class="helper-btn" onclick="insert('px')">px</button>
+    <div class="status-bar">
+        <div>Ln <span id="statusLn">1</span>, Col <span id="statusCol">1</span> | <span id="statusLen">0</span> Chars</div>
+        <div>UTF-8 | A.S Code Pro Engine</div>
     </div>
 
-    <div id="previewContainer">
-        <div class="preview-tabs">
-            <button id="tabResBtn" class="tab-btn active" onclick="switchTab('result')">🌐 Live Output</button>
-            <button id="tabConBtn" class="tab-btn" onclick="switchTab('console')">🐞 Console Logs</button>
-            <button class="close-btn" onclick="toggleRun()">✖ CLOSE PREVIEW</button>
+    <div id="fullscreenPreviewOverlay" class="fs-preview-overlay">
+        <div class="fs-preview-header">
+            <span style="font-weight:600; color:#fff; font-size: 14px;">A.S Code Pro - Fullscreen Output</span>
+            <button class="notify-close" onclick="closeFullscreenPreview()">&times;</button>
         </div>
-
-        <div class="device-toolbar" id="devToolbar">
-            <div class="toolbar-select-wrapper">
-                <select id="devicePresetSelect" onchange="handlePresetChange(this.value)">
-                    <option value="responsive">💻 Desktop (Fluid)</option>
-                    <option value="android">📱 Android Mobile (360x740)</option>
-                    <option value="iphone">🍎 iPhone 13/14 Pro (390x844)</option>
-                    <option value="tablet">📲 Apple iPad Tablet (768x1024)</option>
-                </select>
-            </div>
-
-            <button class="dev-btn" id="rotateBtn" onclick="toggleOrientation()" title="Rotate Aspect Orientation">🔄 Rotate</button>
-            
-            <div class="dev-btn-group">
-                <button class="dev-btn" onclick="adjustZoom(-0.1)" title="Zoom Out">-</button>
-                <button class="dev-btn" id="zoomLabelBtn" style="min-width:50px; pointer-events:none;">100%</button>
-                <button class="dev-btn" onclick="adjustZoom(0.1)" title="Zoom In">+</button>
-            </div>
-
-            <button class="dev-btn" onclick="toggleRuler()" title="Toggle Pixel Alignment Grids">📏 Ruler</button>
-            <button class="dev-btn" onclick="refreshPreviewTarget()" title="Hard Reload Code Instance">🔄 Reload</button>
-            <button class="dev-btn" id="fullscreenBtn" onclick="toggleFullscreenPreview()" title="True Frame Fullscreen Container">📺 Fullscreen</button>
-            
-            <div class="hud-label" id="dimensionHUD">Responsive: 100% × 100%</div>
-        </div>
-
-        <div class="preview-viewport-area">
-            <div class="ruler-overlay" id="rulerOverlay"></div>
-            
-            <div class="device-frame-wrapper" id="deviceFrameWrapper">
-                <div class="device-status-bar">
-                    <span id="statusTime">09:41</span>
-                    <span style="letter-spacing: 1px;">📶 🪫</span>
-                </div>
-                <div class="iframe-container">
-                    <div class="frame-loader-shield" id="frameShield">Compiling Render Engine...</div>
-                    <iframe id="outputFrame"></iframe>
-                </div>
-            </div>
-
-            <div id="consoleArea"></div>
-        </div>
+        <iframe id="fsLiveFrame" sandbox="allow-scripts allow-modals" style="width:100%; height:calc(100% - 40px); border:none; background:#fff;"></iframe>
     </div>
 
-    <div class="manual-overlay" id="manualOverlay" onclick="closeManualGuide()"></div>
-    <div class="manual-modal" id="manualModal">
-        <div class="manual-header">
-            <div class="manual-title">📘 A.S Code Pro - User Manual</div>
-            <button class="manual-close" onclick="closeManualGuide()">✖</button>
-        </div>
-        
-        <div class="manual-search-box">
-            <input type="text" id="manualSearchInput" class="manual-search-input" placeholder="Search documentation or components..." oninput="filterManualTopics()">
-        </div>
-
-        <div class="manual-scroller">
-            <div class="manual-category-title">🖥️ Workspace Tools</div>
-            <div class="manual-grid">
-                <div class="manual-card" data-keywords="live split layout horizontal preview window coding text side">
-                    <div class="manual-card-head">⚡ Live Split</div>
-                    <div class="manual-card-desc">Divides your screen workspace, launching a responsive preview render panel inline without hiding code blocks.</div>
-                </div>
-                <div class="manual-card" data-keywords="snippets template base cards quick navigation buttons boilerplate">
-                    <div class="manual-card-head">⚡ Snippets Menu</div>
-                    <div class="manual-card-desc">Inserts production templates directly into editor like HTML5 resets, premium navbar frameworks, or script structures.</div>
-                </div>
-                <div class="manual-card" data-keywords="find text replace engine regex scan match text editor search">
-                    <div class="manual-card-head">🔍 Code Search</div>
-                    <div class="manual-card-desc">Launches text matcher overlay to sweep code indices and shift selection offsets to matching targets.</div>
-                </div>
-                <div class="manual-card" data-keywords="color picker background layout hex rgb code values styles injection hex palette">
-                    <div class="manual-card-head">🎨 Color Picker</div>
-                    <div class="manual-card-desc">Spawns full custom palette selector. Selecting color strings prints clean hexadecimal values directly inside the document.</div>
-                </div>
-            </div>
-
-            <div class="manual-category-title">📂 File & System Operations</div>
-            <div class="manual-grid">
-                <div class="manual-card" data-keywords="save project download script layout document export locally storage file html">
-                    <div class="manual-card-head">💾 Save Project</div>
-                    <div class="manual-card-desc">Bundles raw data inside clean data blobs and initializes local browser downloads named index.html instantly.</div>
-                </div>
-                <div class="manual-card" data-keywords="open folder filesystem parse structure layout workspace raw file input">
-                    <div class="manual-card-head">📂 Open File</div>
-                    <div class="manual-card-desc">Launches local file manager engine to parse external scripts directly into workspace layers.</div>
-                </div>
-                <div class="manual-card" data-keywords="undo trace revert back coding keystrokes buffer recovery timeline">
-                    <div class="manual-card-head">↩️ Undo Matrix</div>
-                    <div class="manual-card-desc">Triggers historical navigation commands, rolling state indices backward to restore accidental code alterations.</div>
-                </div>
-                <div class="manual-card" data-keywords="refresh frame initialization clear hard reload tab reset view runtime">
-                    <div class="manual-card-head">🔄 Hard Refresh</div>
-                    <div class="manual-card-desc">Reinitializes master scripts and styles, performing clean application cycles to clear system residue variables.</div>
-                </div>
-            </div>
-
-            <div class="manual-category-title">📱 Simulator & Multi-Device Engines</div>
-            <div class="manual-grid">
-                <div class="manual-card" data-keywords="full screen mobile simulated preset device environment wrappers logs apple console debug target">
-                    <div class="manual-card-head">📱 Full Screen Preview</div>
-                    <div class="manual-card-desc">Launches advanced multi-device wrapper frame context with interactive phone chassis vectors and error tracing console systems.</div>
-                </div>
-                <div class="manual-card" data-keywords="ruler grids metrics layout pixels scale design responsive element check width alignment">
-                    <div class="manual-card-head">📏 Pixel Ruler</div>
-                    <div class="manual-card-desc">Injects translucent cross-alignment background grid lines matching perfect CSS layout metrics during mock design evaluations.</div>
-                </div>
-            </div>
-
-            <div class="quick-tips-panel">
-                <div class="quick-tips-title">💡 Developer Productivity Shortcuts</div>
-                <ul class="quick-tips-list">
-                    <li><strong>Ctrl + S / Cmd + S</strong> — Executes code state caching and launches local storage backup routines.</li>
-                    <li><strong>Ctrl + L / Cmd + L</strong> — Automatically registers or cuts active real-time tracking engines instantly.</li>
-                    <li><strong>Tab Key</strong> — Standardizes structural format tracking by printing standardized 4-space code indents.</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
+    <div id="notificationContainer"></div>
     <div class="overlay" id="overlay" onclick="closeAllModals()"></div>
 
+    <div class="modal" id="customPromptModal">
+        <h3 id="promptTitle" style="color:white; margin:0 0 15px 0; font-size:15px; font-weight:600;">Title</h3>
+        <input type="text" id="promptInput" style="width:100%; background:rgba(0,0,0,0.5); border:1px solid #444; color:#fff; padding:12px; border-radius:6px; margin-bottom:20px; font-family:'Fira Code', monospace;" autocomplete="off">
+        <div style="display:flex; gap:10px;">
+            <button class="snippet-btn" style="flex:1; text-align:center;" onclick="closePrompt()">Cancel</button>
+            <button class="snippet-btn" style="flex:1; text-align:center; background:var(--accent); border-color:var(--accent); color:white; font-weight:bold;" onclick="submitPrompt()">Confirm</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="customConfirmModal">
+        <h3 id="confirmTitle" style="color:white; margin:0 0 10px 0; font-size:15px; font-weight:600;">Confirm Action</h3>
+        <p id="confirmMessage" style="color:#ccc; font-size:13px; margin-bottom:20px; line-height:1.5;">Are you sure?</p>
+        <div style="display:flex; gap:10px;">
+            <button class="snippet-btn" style="flex:1; text-align:center;" onclick="closeConfirm()">Cancel</button>
+            <button class="snippet-btn" style="flex:1; text-align:center; background:var(--notify-error); border-color:var(--notify-error); color:white; font-weight:bold;" onclick="submitConfirm()">Delete</button>
+        </div>
+    </div>
+
     <div class="modal" id="templateModal">
-        <h3 style="color:white; margin:0 0 10px 0;">Insert Template</h3>
+        <h3 style="color:white; margin:0 0 15px 0; font-size:15px;">Insert Template</h3>
         <div class="snippet-grid">
             <button class="snippet-btn" onclick="insertSnippet('html')">🌐 HTML5 Base</button>
             <button class="snippet-btn" onclick="insertSnippet('css')">🎨 CSS Reset</button>
@@ -711,552 +380,403 @@
             <button class="snippet-btn" onclick="insertSnippet('btn')">🔘 Button</button>
             <button class="snippet-btn" onclick="insertSnippet('js')">⚙️ JS Script</button>
         </div>
-        <button onclick="closeAllModals()" style="margin-top:10px; width:100%; padding:8px; cursor:pointer; background:#444; color:white; border:none;">Cancel</button>
+        <button onclick="closeAllModals()" style="margin-top:10px; width:100%; padding:10px; cursor:pointer; background:#444; color:white; border:none; border-radius:4px;">Cancel</button>
     </div>
 
     <div class="modal" id="contactModal">
-        <h3 style="color:white; margin:0 0 15px 0;">📧 Contact Support</h3>
-        <div style="background:#1e1e1e; padding:12px; border:1px solid #444; border-radius:4px; margin-bottom:15px; color:#fff; word-break: break-all; text-align:center; font-family:'Fira Code', monospace;">
+        <h3 style="color:white; margin:0 0 15px 0; font-size:15px;">📧 Contact Support</h3>
+        <div style="background:#1e1e1e; padding:12px; border:1px solid #444; border-radius:4px; margin-bottom:15px; color:#fff; text-align:center; font-family:'Fira Code', monospace;">
             etho98g@gmail.com
         </div>
         <div style="display:flex; gap:10px;">
-            <button class="snippet-btn" style="flex:1; text-align:center; background:#007acc; border-color:#007acc; color:white; font-weight:bold;" onclick="copyEmail(this)">Copy</button>
+            <button class="snippet-btn" style="flex:1; text-align:center; background:var(--accent); border-color:var(--accent); color:white; font-weight:bold;" onclick="copyEmail(this)">Copy</button>
             <button class="snippet-btn" style="flex:1; text-align:center;" onclick="closeAllModals()">Close</button>
         </div>
     </div>
 
     <input type="file" id="fileInput" accept=".html,.txt,.js,.css" onchange="loadFile(event)" style="display:none;">
-    <input type="color" id="colorPickerInput" onchange="insertColor(this)">
+    <input type="color" id="colorPickerInput" onchange="insertColor(this)" style="visibility:hidden; width:0; height:0; position:absolute;">
 
     <script>
-        // --- AUTHENTICATION LOGIC (NEW) ---
-        const authOverlay = document.getElementById('authOverlay');
-        const authCard = document.getElementById('authCard');
-        const authPassword = document.getElementById('authPassword');
-        const authBtn = document.getElementById('authBtn');
-        const authError = document.getElementById('authError');
-        const authEyeBtn = document.getElementById('authEyeBtn');
-        const capsWarning = document.getElementById('capsWarning');
-        const lockIcon = document.getElementById('lockIcon');
-        const unlockIcon = document.getElementById('unlockIcon');
-        const authIconWrap = document.getElementById('authIconWrap');
+        /* --- MODERN NOTIFICATION SYSTEM --- */
+        const notificationColors = {
+            success: 'var(--notify-success)',
+            error: 'var(--notify-error)',
+            warning: 'var(--notify-warning)',
+            info: 'var(--notify-info)'
+        };
 
-        // Block background interaction entirely on load
-        document.body.classList.add('modal-open');
-
-        function triggerAuthShake() {
-            authError.style.display = 'block';
-            authCard.classList.remove('shake-anim');
-            void authCard.offsetWidth; // Force CSS reflow to restart animation
-            authCard.classList.add('shake-anim');
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notif = document.createElement('div');
+            notif.className = 'app-notification';
             
-            // Subtle icon color shift for error state
-            authIconWrap.style.color = '#ff5252';
-            authIconWrap.style.background = 'rgba(255, 82, 82, 0.1)';
-            authIconWrap.style.borderColor = 'rgba(255, 82, 82, 0.3)';
-            authIconWrap.style.boxShadow = '0 0 30px rgba(255, 82, 82, 0.2)';
+            const borderColor = notificationColors[type] || notificationColors.info;
+            notif.style.borderLeft = `4px solid ${borderColor}`;
+
+            notif.innerHTML = `
+                <div class="notify-msg">${message}</div>
+                <button class="notify-close" onclick="this.parentElement.classList.add('fade-out'); setTimeout(() => this.parentElement.remove(), 300);">&times;</button>
+            `;
+            
+            container.appendChild(notif);
+
             setTimeout(() => {
-                authIconWrap.style.color = '#4fc1ff';
-                authIconWrap.style.background = 'rgba(0, 122, 204, 0.15)';
-                authIconWrap.style.borderColor = 'rgba(0, 122, 204, 0.3)';
-                authIconWrap.style.boxShadow = '0 0 30px rgba(0, 122, 204, 0.2)';
+                if(container.contains(notif)) {
+                    notif.classList.add('fade-out');
+                    setTimeout(() => { if(container.contains(notif)) notif.remove(); }, 300);
+                }
+            }, 4000);
+        }
+
+        /* --- CUSTOM PROMPT MODAL (FOR TEXT INPUT) --- */
+        let currentPromptCallback = null;
+
+        function showCustomPrompt(message, callback) {
+            document.getElementById("overlay").style.display = "block";
+            const modal = document.getElementById("customPromptModal");
+            modal.style.display = "block";
+            document.getElementById("promptTitle").innerText = message;
+            
+            const input = document.getElementById("promptInput");
+            input.value = "";
+            input.focus();
+            
+            currentPromptCallback = callback;
+        }
+
+        function closePrompt() {
+            document.getElementById("customPromptModal").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+            currentPromptCallback = null;
+        }
+
+        function submitPrompt() {
+            if (currentPromptCallback) {
+                const val = document.getElementById("promptInput").value.trim();
+                currentPromptCallback(val);
+            }
+            closePrompt();
+        }
+
+        document.getElementById('promptInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') submitPrompt();
+            if (e.key === 'Escape') closePrompt();
+        });
+
+        /* --- CUSTOM CONFIRM MODAL (FOR DELETION) --- */
+        let currentConfirmCallback = null;
+
+        function showConfirmModal(title, message, callback) {
+            document.getElementById("overlay").style.display = "block";
+            const modal = document.getElementById("customConfirmModal");
+            modal.style.display = "block";
+            document.getElementById("confirmTitle").innerText = title;
+            document.getElementById("confirmMessage").innerText = message;
+            
+            currentConfirmCallback = callback;
+        }
+
+        function closeConfirm() {
+            document.getElementById("customConfirmModal").style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+            currentConfirmCallback = null;
+        }
+
+        function submitConfirm() {
+            if (currentConfirmCallback) currentConfirmCallback();
+            closeConfirm();
+        }
+
+        /* --- VIRTUAL FILE SYSTEM --- */
+        let vfs = JSON.parse(localStorage.getItem('as-code-vfs')) || {
+            'index.html': '\n<h1>Hello World</h1>',
+            'style.css': 'body {\n    background: #000;\n    color: #fff;\n}',
+            'script.js': 'console.log("System Initialized");'
+        };
+        let currentFile = 'index.html';
+
+        function saveVFS() { localStorage.setItem('as-code-vfs', JSON.stringify(vfs)); }
+
+        function renderExplorer() {
+            const list = document.getElementById('fileList');
+            list.innerHTML = '';
+            for (const filename in vfs) {
+                const div = document.createElement('div');
+                div.className = `file-item ${filename === currentFile ? 'active' : ''}`;
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'file-name';
+                nameSpan.innerHTML = `📄 ${filename}`;
+                nameSpan.onclick = () => switchFile(filename);
+                
+                const delBtn = document.createElement('button');
+                delBtn.className = 'file-del-btn';
+                delBtn.innerHTML = '&times;';
+                delBtn.title = 'Delete File';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteFile(filename);
+                };
+                
+                div.appendChild(nameSpan);
+                div.appendChild(delBtn);
+                list.appendChild(div);
+            }
+        }
+
+        function createNewFile() {
+            showCustomPrompt("Enter file name (e.g., script.js):", (name) => {
+                if (name) {
+                    if (vfs[name] !== undefined) {
+                        showNotification("File already exists!", "warning");
+                    } else {
+                        vfs[name] = '';
+                        saveVFS();
+                        switchFile(name);
+                        showNotification(`Created file: ${name}`, "success");
+                    }
+                }
+            });
+        }
+        
+        function deleteFile(filename) {
+            showConfirmModal("Delete File", `Are you sure you want to permanently delete '${filename}'?`, () => {
+                delete vfs[filename];
+                const remainingFiles = Object.keys(vfs);
+                
+                if (remainingFiles.length === 0) {
+                    vfs['index.html'] = '';
+                    currentFile = 'index.html';
+                } else if (currentFile === filename) {
+                    currentFile = remainingFiles[0];
+                }
+                
+                saveVFS();
+                switchFile(currentFile);
+                showNotification(`${filename} deleted`, "success");
+            });
+        }
+
+        function switchFile(filename) {
+            currentFile = filename;
+            editor.value = vfs[filename];
+            document.getElementById('currentTab').innerText = filename;
+            renderExplorer();
+            updateEditor();
+        }
+
+        /* --- EDITOR ENGINE --- */
+        const editor = document.getElementById('editor');
+        const highlighting = document.getElementById('highlighting');
+        const gutter = document.getElementById('gutter');
+        let debounceTimer;
+
+        window.addEventListener('load', () => {
+            initApp();
+            showNotification("A.S Code Pro Initialized", "success");
+        });
+
+        function initApp() {
+            if (Object.keys(vfs).length === 0) {
+                vfs['index.html'] = '';
+                saveVFS();
+            }
+            const startFile = vfs['index.html'] !== undefined ? 'index.html' : Object.keys(vfs)[0];
+            switchFile(startFile);
+        }
+
+        function updateEditor() {
+            const text = editor.value;
+            vfs[currentFile] = text;
+            saveVFS();
+
+            highlighting.innerHTML = applySyntaxHighlighting(escapeHTML(text));
+            
+            const lines = text.split('\n').length;
+            gutter.innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join('<br>');
+            
+            document.getElementById('statusLen').innerText = text.length;
+            updateCursorPos();
+
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                if (previewActive) updatePreview();
+                if (document.getElementById('fullscreenPreviewOverlay').style.display === 'block') {
+                    updateFullscreenPreview();
+                }
             }, 500);
         }
 
-        function unlockSystem() {
-            if (authPassword.value === 'aryan@123') {
-                authError.style.display = 'none';
-                
-                // Success UI Transitions
-                authBtn.innerHTML = 'Unlocking <span class="loading-dots"></span>';
-                authBtn.style.background = '#2e7d32'; // Green success color
-                
-                lockIcon.style.display = 'none';
-                unlockIcon.style.display = 'block';
-                authIconWrap.style.color = '#4caf50'; // Green success color
-                authIconWrap.style.background = 'rgba(76, 175, 80, 0.15)';
-                authIconWrap.style.borderColor = 'rgba(76, 175, 80, 0.3)';
-                authIconWrap.style.boxShadow = '0 0 30px rgba(76, 175, 80, 0.2)';
-                authIconWrap.style.transform = 'scale(1.1)';
-                
-                // Allow user data visualization and interaction
-                setTimeout(() => {
-                    authOverlay.classList.add('unlocked');
-                    document.body.classList.remove('modal-open');
-                    
-                    setTimeout(() => { 
-                        authOverlay.style.display = 'none'; 
-                    }, 800); // Wait for CSS fade transition
-                }, 600);
-            } else {
-                triggerAuthShake();
-            }
+        function escapeHTML(text) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+        function applySyntaxHighlighting(text) {
+            return text
+                .replace(/&lt;([a-zA-Z0-9]+)(.*?)&gt;/g, '<span class="syn-tag">&lt;$1$2&gt;</span>') 
+                .replace(/(["'])(.*?)\1/g, '<span class="syn-string">$1$2$1</span>')
+                .replace(/\b(function|return|let|const|var|if|else|for|while)\b/g, '<span class="syn-keyword">$1</span>')
+                .replace(/(\/\/.*|\/\*[\s\S]*?\*\/|&lt;!--[\s\S]*?--&gt;)/g, '<span class="syn-comment">$1</span>');
         }
 
-        authBtn.addEventListener('click', unlockSystem);
-        
-        authPassword.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') unlockSystem();
+        editor.addEventListener('scroll', () => {
+            highlighting.scrollTop = editor.scrollTop;
+            highlighting.scrollLeft = editor.scrollLeft;
+            gutter.scrollTop = editor.scrollTop;
         });
 
-        // Caps Lock Detection Engine
-        authPassword.addEventListener('keyup', (e) => {
-            if (e.getModifierState && e.getModifierState('CapsLock')) {
-                capsWarning.style.display = 'block';
-            } else {
-                capsWarning.style.display = 'none';
-            }
-        });
-        authPassword.addEventListener('mousedown', (e) => {
-             if (e.getModifierState && e.getModifierState('CapsLock')) capsWarning.style.display = 'block';
-        });
+        editor.addEventListener('input', updateEditor);
+        editor.addEventListener('keyup', updateCursorPos);
+        editor.addEventListener('click', updateCursorPos);
 
-        // Password Show/Hide Toggle
-        authEyeBtn.addEventListener('click', () => {
-            if (authPassword.type === 'password') {
-                authPassword.type = 'text';
-                authEyeBtn.textContent = '🙈';
-            } else {
-                authPassword.type = 'password';
-                authEyeBtn.textContent = '👁️';
-            }
-        });
-
-        // Auto-focus Input
-        window.addEventListener('load', () => { authPassword.focus(); });
-
-
-        // --- SERVICE WORKER REGISTRATION ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log(err));
-            });
+        function updateCursorPos() {
+            const textLines = editor.value.substr(0, editor.selectionStart).split("\n");
+            document.getElementById('statusLn').innerText = textLines.length;
+            document.getElementById('statusCol').innerText = textLines[textLines.length - 1].length + 1;
         }
 
-        const editor = document.getElementById("editor");
-        const gutter = document.getElementById("gutter");
-        const previewContainer = document.getElementById("previewContainer");
-        const frame = document.getElementById("outputFrame");
-        const consoleArea = document.getElementById("consoleArea");
-        
-        const editorContainer = document.getElementById("editorContainer");
-        const splitPreviewPanel = document.getElementById("splitPreviewPanel");
-        const splitFrame = document.getElementById("splitFrame");
-        const splitToggleBtn = document.getElementById("splitToggleBtn");
-
-        const deviceWrapper = document.getElementById("deviceFrameWrapper");
-        const dimensionHUD = document.getElementById("dimensionHUD");
-        const zoomLabelBtn = document.getElementById("zoomLabelBtn");
-        const frameShield = document.getElementById("frameShield");
-        const rulerOverlay = document.getElementById("rulerOverlay");
-        const deviceSelect = document.getElementById("devicePresetSelect");
-        const devToolbar = document.getElementById("devToolbar");
-
-        let currentDevice = 'responsive';
-        let isLandscape = false;
-        let zoomScale = 1.0;
-        let isFullscreenMode = false;
-        
-        let isLivePreviewEnabled = true;
-        let isSplitScreenActive = false;
-        let liveUpdateTimer;
-
-        const deviceMetrics = {
-            responsive: { width: "100%", height: "100%", name: "Desktop (Fluid)" },
-            android: { width: 360, height: 740, name: "Android Mobile" },
-            iphone: { width: 390, height: 844, name: "iPhone 14 Pro" },
-            tablet: { width: 768, height: 1024, name: "Apple iPad" }
-        };
-
-        window.onload = function() {
-            // Note: Background processes load silently behind the Auth Screen seamlessly.
-            const saved = localStorage.getItem("as-code-fixed");
-            if (saved) editor.value = saved;
-            updateUI();
-            updateClock();
-            setInterval(updateClock, 60000);
-            authPassword.focus(); // Ensure focus remains on auth
+        /* --- PREVIEW ENGINES (Fixed with srcdoc) --- */
+        let previewActive = false;
+        function togglePreview() {
+            previewActive = !previewActive;
+            const btn = document.getElementById('splitToggleBtn');
+            const panel = document.getElementById('previewPanel');
             
-            if(devToolbar) {
-                const liveToggleHtml = `
-                    <button class="dev-btn active" id="liveToggleBtn" onclick="toggleLivePreview()" title="Toggle Auto-Update (Ctrl+L)" style="min-width: 95px;">
-                        <span id="liveStatusDot" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#4caf50; margin-right:5px; transition: background 0.2s;"></span>
-                        <span id="liveToggleText">Live: ON</span>
-                    </button>
-                `;
-                devToolbar.insertAdjacentHTML('afterbegin', liveToggleHtml);
+            if (previewActive) {
+                btn.innerText = '✖ CLOSE SPLIT';
+                btn.classList.add('active');
+                panel.classList.add('active');
+                updatePreview();
+                showNotification("Live server started", "success");
+            } else {
+                btn.innerText = '⚡ LIVE SPLIT';
+                btn.classList.remove('active');
+                panel.classList.remove('active');
+                showNotification("Live server disconnected", "info");
             }
-        };
+        }
 
-        editor.addEventListener("input", () => {
-            updateUI();
-            localStorage.setItem("as-code-fixed", editor.value);
+        function getMergedSource() {
+            const html = vfs['index.html'] || '';
+            const css = `<style>\n${vfs['style.css'] || ''}\n</style>`;
+            const js = `<script>\n${vfs['script.js'] || ''}\n<\/script>`;
+            return html + css + js;
+        }
+
+        function updatePreview() {
+            if (!previewActive) return;
+            document.getElementById('liveFrame').srcdoc = getMergedSource();
+        }
+
+        function openFullscreenPreview() {
+            const fsOverlay = document.getElementById('fullscreenPreviewOverlay');
+            fsOverlay.style.display = 'block';
+            updateFullscreenPreview();
+            showNotification("Fullscreen preview launched", "success");
+        }
+
+        function closeFullscreenPreview() {
+            const fsOverlay = document.getElementById('fullscreenPreviewOverlay');
+            fsOverlay.style.display = 'none';
+        }
+
+        function updateFullscreenPreview() {
+            document.getElementById('fsLiveFrame').srcdoc = getMergedSource();
+        }
+
+        /* --- UI UTILITIES --- */
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+        
+        // Modals
+        function openSnippets() { document.getElementById("overlay").style.display = "block"; document.getElementById("templateModal").style.display = "block"; }
+        function openContact() { document.getElementById("overlay").style.display = "block"; document.getElementById("contactModal").style.display = "block"; }
+        function closeAllModals() { 
+            document.getElementById("overlay").style.display = "none"; 
+            document.getElementById("templateModal").style.display = "none"; 
+            document.getElementById("contactModal").style.display = "none";
             
-            if (isLivePreviewEnabled) {
-                const dotFull = document.getElementById('liveStatusDot');
-                const dotSplit = document.getElementById('splitStatusDot');
-                
-                if (dotFull) dotFull.style.background = '#ff9800';
-                if (dotSplit) dotSplit.style.background = '#ff9800';
-                
-                clearTimeout(liveUpdateTimer);
-                liveUpdateTimer = setTimeout(() => {
-                    updatePreviewLive();
-                }, 400); 
-            }
-        });
-
-        editor.addEventListener("scroll", () => { gutter.scrollTop = editor.scrollTop; });
-        editor.addEventListener("keydown", (e) => { if (e.key === "Tab") { e.preventDefault(); insert("    "); } });
-
-        function updateUI() {
-            const lines = editor.value.split("\n").length;
-            gutter.innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join("<br>");
+            document.getElementById("customPromptModal").style.display = "none";
+            currentPromptCallback = null;
+            
+            document.getElementById("customConfirmModal").style.display = "none";
+            currentConfirmCallback = null;
         }
-
-        function updateClock() {
-            const now = new Date();
-            const timeSpan = document.getElementById("statusTime");
-            if(timeSpan) {
-                timeSpan.textContent = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-            }
-        }
-
-        function contactUs() {
-            document.getElementById("overlay").style.display = "block";
-            document.getElementById("contactModal").style.display = "block";
-        }
+        
         function copyEmail(btn) {
             navigator.clipboard.writeText("etho98g@gmail.com");
             const originalText = btn.innerText;
-            btn.innerText = "✓ Copied!";
-            btn.style.background = "#28a745";
-            setTimeout(() => { btn.innerText = originalText; btn.style.background = "#007acc"; }, 2000);
+            btn.innerText = "✓ Copied!"; btn.style.background = "#28a745";
+            setTimeout(() => { btn.innerText = originalText; btn.style.background = "var(--accent)"; }, 2000);
+            showNotification("Support email copied to clipboard", "success");
         }
 
-        function openSnippets() { 
-            document.getElementById("overlay").style.display = "block"; 
-            document.getElementById("templateModal").style.display = "block"; 
-        }
-        function closeAllModals() {
-            document.getElementById("overlay").style.display = "none";
-            document.getElementById("templateModal").style.display = "none";
-            document.getElementById("contactModal").style.display = "none";
-        }
-
-        // --- HIGH-PERFORMANCE MANUAL POPUP LOGIC ---
-        function openManualGuide() {
-            document.body.classList.add("modal-open");
-            const overlay = document.getElementById("manualOverlay");
-            overlay.classList.add("show");
-            document.getElementById("manualSearchInput").value = "";
-            filterManualTopics();
-        }
-
-        function closeManualGuide() {
-            document.body.classList.remove("modal-open");
-            const overlay = document.getElementById("manualOverlay");
-            if (overlay) overlay.classList.remove("show");
-        }
-
-        function filterManualTopics() {
-            const query = document.getElementById("manualSearchInput").value.toLowerCase().trim();
-            const cards = document.querySelectorAll(".manual-card");
-            const categories = document.querySelectorAll(".manual-category-title");
-
-            cards.forEach(card => {
-                const head = card.querySelector(".manual-card-head").textContent.toLowerCase();
-                const desc = card.querySelector(".manual-card-desc").textContent.toLowerCase();
-                const keywords = card.getAttribute("data-keywords").toLowerCase();
-
-                if (head.includes(query) || desc.includes(query) || keywords.includes(query)) {
-                    card.style.display = "block";
-                } else {
-                    card.style.display = "none";
-                }
-            });
-
-            categories.forEach(cat => {
-                let nextGrid = cat.nextElementSibling;
-                if (nextGrid && nextGrid.classList.contains("manual-grid")) {
-                    const visibleCards = nextGrid.querySelectorAll('.manual-card[style="display: block;"]');
-                    cat.style.display = visibleCards.length > 0 ? "block" : "none";
-                }
-            });
-        }
-
-        function toggleSplitScreen() {
-            isSplitScreenActive = !isSplitScreenActive;
-            
-            if (isSplitScreenActive) {
-                splitToggleBtn.classList.add("active");
-                splitToggleBtn.innerText = "✖ CLOSE SPLIT";
-                editorContainer.style.width = window.innerWidth > 768 ? "50%" : "100%";
-                splitPreviewPanel.style.display = "flex";
-                updatePreviewLive();
-            } else {
-                splitToggleBtn.classList.remove("active");
-                splitToggleBtn.innerText = "⚡ LIVE SPLIT";
-                editorContainer.style.width = "100%";
-                splitPreviewPanel.style.display = "none";
-            }
-        }
-
-        function toggleRun() {
-            if (previewContainer.classList.contains("show")) {
-                previewContainer.classList.remove("show");
-                setTimeout(() => { previewContainer.style.display = "none"; }, 250);
-            } else {
-                previewContainer.style.display = "flex";
-                previewContainer.offsetHeight;
-                previewContainer.classList.add("show");
-                setPreviewDevice(currentDevice);
-                runCode();
-            }
-        }
-
-        function runCode() {
-            consoleArea.innerHTML = "";
-            frameShield.classList.add("loading");
-            
-            const code = editor.value;
-            const consoleScript = `<script>
-                    window.onerror = function(msg, url, line) { window.parent.postMessage({type: 'error', msg: msg + " (Line " + line + ")"}, '*'); };
-                    const originalLog = console.log;
-                    console.log = function(...args) { originalLog.apply(console, args); window.parent.postMessage({type: 'log', msg: args.join(" ")}, '*'); };
-                <\/script>`;
-                
-            setTimeout(() => {
-                frame.contentWindow.document.open();
-                frame.contentWindow.document.write(consoleScript + code);
-                frame.contentWindow.document.close();
-                frameShield.classList.remove("loading");
-            }, 300);
-        }
-
-        function refreshPreviewTarget() {
-            runCode();
-        }
-
-        window.addEventListener('message', function(e) {
-            if (e.data.type === 'log') {
-                const div = document.createElement('div');
-                div.className = 'log-msg log-info'; div.textContent = "> " + e.data.msg;
-                consoleArea.appendChild(div);
-            } else if (e.data.type === 'error') {
-                const div = document.createElement('div');
-                div.className = 'log-msg log-error'; div.textContent = "❌ " + e.data.msg;
-                consoleArea.appendChild(div);
-            }
-        });
-
-        function switchTab(tab) {
-            document.getElementById('tabResBtn').classList.remove('active');
-            document.getElementById('tabConBtn').classList.remove('active');
-            
-            if (tab === 'result') {
-                document.getElementById('tabResBtn').classList.add('active');
-                deviceWrapper.style.display = 'flex';
-                devToolbar.style.display = 'flex';
-                consoleArea.style.display = 'none';
-            } else {
-                document.getElementById('tabConBtn').classList.add('active');
-                deviceWrapper.style.display = 'none';
-                devToolbar.style.display = 'none';
-                consoleArea.style.display = 'block';
-            }
-        }
-
-        function handlePresetChange(val) { setPreviewDevice(val); }
-
-        function setPreviewDevice(device) {
-            currentDevice = device;
-            deviceSelect.value = device;
-            deviceWrapper.className = "device-frame-wrapper";
-            
-            if (device === 'responsive') {
-                updatePreviewSize("100%", "100%");
-            } else {
-                deviceWrapper.classList.add("phone-chassis");
-                if (device === 'iphone') {
-                    deviceWrapper.classList.add("apple-notch");
-                }
-                const metric = deviceMetrics[device];
-                let targetWidth = isLandscape ? metric.height : metric.width;
-                let targetHeight = isLandscape ? metric.width : metric.height;
-                updatePreviewSize(targetWidth, targetHeight);
-            }
-        }
-
-        function updatePreviewSize(width, height) {
-            const suffix = (typeof width === 'number') ? 'px' : '';
-            deviceWrapper.style.width = width + suffix;
-            deviceWrapper.style.height = height + suffix;
-            
-            const labelName = deviceMetrics[currentDevice].name;
-            const computedW = (width === "100%") ? deviceWrapper.clientWidth : width;
-            const computedH = (height === "100%") ? deviceWrapper.clientHeight : height;
-            
-            dimensionHUD.textContent = `${labelName}: ${computedW}px × ${computedH}px`;
-            applyTransformationMatrix();
-        }
-
-        function toggleOrientation() {
-            if (currentDevice === 'responsive') return;
-            isLandscape = !isLandscape;
-            setPreviewDevice(currentDevice);
-        }
-
-        function adjustZoom(delta) {
-            zoomScale = Math.max(0.3, Math.min(2.0, zoomScale + delta));
-            zoomLabelBtn.textContent = Math.round(zoomScale * 100) + "%";
-            applyTransformationMatrix();
-        }
-
-        function applyTransformationMatrix() {
-            deviceWrapper.style.transform = `scale(${zoomScale})`;
-        }
-
-        function toggleRuler() { rulerOverlay.classList.toggle("active"); }
-
-        function toggleFullscreenPreview() {
-            isFullscreenMode = !isFullscreenMode;
-            const fsBtn = document.getElementById("fullscreenBtn");
-            
-            if (isFullscreenMode) {
-                fsBtn.classList.add("active");
-                devToolbar.style.position = "absolute";
-                devToolbar.style.top = "0";
-                devToolbar.style.left = "0";
-                devToolbar.style.width = "100%";
-                devToolbar.style.zIndex = "6000";
-                devToolbar.style.background = "rgba(45,45,45,0.95)";
-                setPreviewDevice('responsive');
-            } else {
-                fsBtn.classList.remove("active");
-                devToolbar.style.position = "static";
-                devToolbar.style.width = "100%";
-                setPreviewDevice(deviceSelect.value);
-            }
-        }
-        
-        const snippets = {
-            html: `<!DOCTYPE html>\n<html>\n<head>\n<style>\n  body{ padding:20px; font-family:sans-serif; background:#f9f9f9; color:#333; }\n</style>\n</head>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>`,
-            css: `* { margin:0; box-sizing:border-box; }`,
-            nav: `<nav style="background:#333; color:white; padding:15px; display:flex; justify-content:space-between; font-family:sans-serif;">\n  <b>Logo</b>\n  <div>Home • About</div>\n</nav>`,
-            card: `<div style="border:1px solid #ddd; padding:20px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.05); font-family:sans-serif; max-width:300px; background:white;">\n  <h3 style="margin-top:0;">Premium Card UI</h3>\n  <p style="color:#666; font-size:14px;">This layout architecture automatically conforms to device scaling vectors seamlessly.</p>\n</div>`,
-            btn: `<button style="background:#007acc; color:white; padding:10px 20px; border:none; border-radius:5px; font-weight:bold; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#0062a3'" onmouseout="this.style.background='#007acc'">Interact</button>`,
-            js: `<script>\n  console.log('App Core Initialization Process Complete.');\n<\/script>`
-        };
-        function insertSnippet(k) { insert(snippets[k]); closeAllModals(); }
-
-        function insertColor(input) { insert(input.value); }
-
+        // Search
         function toggleSearch() {
             const bar = document.getElementById("searchBar");
             bar.style.display = bar.style.display === "flex" ? "none" : "flex";
             if(bar.style.display === "flex") document.getElementById("searchInput").focus();
         }
-
         function findText() {
             const query = document.getElementById("searchInput").value;
             if (!query) return;
             const index = editor.value.indexOf(query, editor.selectionEnd);
-            if (index !== -1) { editor.focus(); editor.setSelectionRange(index, index + query.length); }
-            else { alert("Not found"); }
+            if (index !== -1) { 
+                editor.focus(); 
+                editor.setSelectionRange(index, index + query.length); 
+            } else { 
+                showNotification(`"${query}" not found in current file`, "warning"); 
+            }
         }
 
-        function insert(text) {
+        // Text Insertions
+        function insertText(text) {
             const start = editor.selectionStart;
             const end = editor.selectionEnd;
             const val = editor.value;
             editor.value = val.substring(0, start) + text + val.substring(end);
             editor.selectionStart = editor.selectionEnd = start + text.length;
             editor.focus();
-            updateUI();
-            editor.dispatchEvent(new Event('input'));
+            updateEditor();
         }
+        function insertColor(input) { insertText(input.value); showNotification(`Color ${input.value} inserted`, "info"); }
+        
+        const snippets = {
+            html: `<!DOCTYPE html>\n<html>\n<head>\n</head>\n<body>\n  <h1>Hello</h1>\n</body>\n</html>`,
+            css: `* { margin:0; box-sizing:border-box; }`,
+            nav: `<nav style="background:#333; color:white; padding:15px; display:flex; justify-content:space-between;">\n  <b>Logo</b>\n  <div>Home</div>\n</nav>`,
+            card: `<div style="border:1px solid #ddd; padding:20px; border-radius:8px; background:white;">\n  <h3>Card UI</h3>\n</div>`,
+            btn: `<button style="background:#007acc; color:white; padding:10px; border:none; border-radius:5px;">Click</button>`,
+            js: `console.log('Script loaded');`
+        };
+        function insertSnippet(k) { insertText(snippets[k]); closeAllModals(); showNotification("Template snippet inserted", "success"); }
 
+        // File I/O
         function saveFile() {
-            const blob = new Blob([editor.value], { type: "text/html" });
+            const blob = new Blob([editor.value], { type: currentFile.endsWith('.js') ? 'text/javascript' : (currentFile.endsWith('.css') ? 'text/css' : 'text/html') });
             const a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
-            a.download = "index.html";
+            a.download = currentFile;
             a.click();
+            showNotification(`Downloaded ${currentFile} successfully`, "success");
         }
-
         function loadFile(event) {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function (e) { editor.value = e.target.result; updateUI(); };
+            reader.onload = function (e) { 
+                editor.value = e.target.result; 
+                vfs[currentFile] = editor.value; 
+                saveVFS();
+                updateEditor(); 
+                showNotification(`Loaded content into ${currentFile}`, "success");
+            };
             reader.readAsText(file);
         }
-        
-        function updatePreviewLive() {
-            const code = editor.value;
-            const consoleScript = `<script>
-                window.onerror = function(msg, url, line) { window.parent.postMessage({type: 'error', msg: msg + " (Line " + line + ")"}, '*'); };
-                const originalLog = console.log;
-                console.log = function(...args) { originalLog.apply(console, args); window.parent.postMessage({type: 'log', msg: args.join(" ")}, '*'); };
-            <\/script>`;
 
-            if (isSplitScreenActive) {
-                try {
-                    const sDoc = splitFrame.contentWindow.document;
-                    sDoc.open();
-                    sDoc.write(code);
-                    sDoc.close();
-                    document.getElementById('splitStatusDot').style.background = '#4caf50';
-                } catch(err) { console.error("Split Sync Error:", err); }
-            }
-
-            if (previewContainer.classList.contains("show")) {
-                try {
-                    consoleArea.innerHTML = "";
-                    const fDoc = frame.contentWindow.document;
-                    fDoc.open();
-                    fDoc.write(consoleScript + code);
-                    fDoc.close();
-                    document.getElementById('liveStatusDot').style.background = '#4caf50';
-                } catch(err) { console.error("Fullscreen Modal Sync Error:", err); }
-            }
-        }
-
-        function toggleLivePreview() {
-            isLivePreviewEnabled = !isLivePreviewEnabled;
-            const btn = document.getElementById("liveToggleBtn");
-            const dot = document.getElementById("liveStatusDot");
-            const text = document.getElementById("liveToggleText");
-
-            if (isLivePreviewEnabled) {
-                btn.classList.add("active");
-                dot.style.background = '#4caf50';
-                text.innerText = "Live: ON";
-                updatePreviewLive(); 
-            } else {
-                btn.classList.remove("active");
-                dot.style.background = '#777';
-                text.innerText = "Live: OFF";
-            }
-        }
-
-        document.addEventListener("keydown", (e) => {
-            // Do not process global shortcuts if auth overlay is active
-            if (!authOverlay.classList.contains('unlocked')) return;
-            
-            if (e.key === "Escape") {
-                closeManualGuide();
-                closeAllModals();
-            }
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', e => {
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
                 e.preventDefault();
-                saveFile(); 
-                updatePreviewLive();
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
-                e.preventDefault();
-                toggleLivePreview();
+                saveFile();
             }
         });
     </script>
